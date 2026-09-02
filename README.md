@@ -1,12 +1,10 @@
 # ai-qa-engineer
 
-A coding agent skill that tests a web app the way a QA engineer does:
+Point a coding agent at a web app and it will:
 
-1. Works out what the system is, from three angles.
-2. Decides what is worth testing.
-3. Writes the tests at the right layer.
-4. Runs them.
-5. Decides which failures are real.
+- read the frontend and backend, and map every route the server registers
+- exercise each one against the running app
+- report only the bugs it reproduced, with screenshots, repro steps and the API calls
 
 Tell it where the app is and where the code is. Either can be local or remote.
 
