@@ -1,6 +1,6 @@
 # ai-qa-engineer
 
-An agent skill that tests a web application the way a quality engineer does: it works out what the system is from three angles, decides what is worth testing, writes the tests at the right layer, runs them, and then decides which failures are real.
+A coding agent skill that tests a web application the way a quality engineer does: it works out what the system is from three angles, decides what is worth testing, writes the tests at the right layer, runs them, and then decides which failures are real.
 
 ```
 /ai-qa-engineer --url http://localhost:3000 --source https://github.com/juice-shop/juice-shop
