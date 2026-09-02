@@ -119,12 +119,12 @@ artifacts/<run>/
   QA-REPORT.md       the thing a developer reads
 ```
 
-A full run against Juice Shop is in [`examples/juice-shop/`](examples/juice-shop).
+[`examples/juice-shop/`](examples/juice-shop) holds a real run: the four maps, the plan, the triage and the generated specs.
 
 ## Design decisions
 
-**The target runs in Docker, not on the public internet.**
-Default is OWASP Juice Shop, pinned to a version. A shared public demo makes runs non-reproducible.
+**The target runs locally, not on the public internet.**
+Default is OWASP Juice Shop in Docker, pinned to a version. A shared public demo makes runs non-reproducible.
 
 **`retries: 0`.**
 Retries hide the exact signal triage exists to read. An unstable test is a finding.
@@ -143,8 +143,14 @@ Everything else is scaffolding around one file a developer can act on: steps, ex
 ```bash
 npm install
 npx playwright install chromium
-npm run app:up
 ```
+
+Then start a target app. Two that this has been run against:
+
+| Target | Command | Notes |
+| --- | --- | --- |
+| OWASP Juice Shop | `npm run app:up` | Docker, pinned to v20.2.0, serves on `:3000` |
+| Conduit (RealWorld) | see [Quickstart](docs/QUICKSTART.md#2-start-a-target) | Node + SQLite, no Docker |
 
 Then run the skill from your agent CLI. No API key: the judgment stages run on your existing session, the scripts run locally.
 
