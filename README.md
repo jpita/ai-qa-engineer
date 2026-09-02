@@ -110,7 +110,7 @@ npx playwright install chromium
 npm run app:up
 ```
 
-Then run the skill from Claude Code. No API key: the judgment stages run on your existing Claude Code session, the scripts run locally.
+Then run the skill from your agent CLI. No API key: the judgment stages run on your existing session, the scripts run locally.
 
 ## License
 

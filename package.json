@@ -2,7 +2,7 @@
   "name": "ai-qa-engineer",
   "version": "0.1.0",
   "private": false,
-  "description": "A Claude Code skill that inspects a web app and its source, plans and writes tests at the right layer, runs them, and triages the failures",
+  "description": "A coding agent skill that inspects a web app and its source, plans and writes tests at the right layer, runs them, and triages the failures",
   "type": "module",
   "scripts": {
     "crawl": "tsx scripts/crawl.ts",
