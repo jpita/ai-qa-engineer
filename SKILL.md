@@ -56,11 +56,23 @@ Every agent in a run must have the SAME tools, or the comparison measures the se
 - Frontend features: drive a real browser — navigate, click, type, read what the user actually sees. An agent with no browser can only guess at the UI from code, which is not testing it.
 - Provision the browser tool for every agent and confirm it (`<cli> mcp list`).
 
-## Inputs
+## What you need to be told
 
-- `--url` the running app. Required.
-- `--source` local path to the app source (frontend and backend). The running app is a checkout on disk; point at that. Without it you cannot enumerate the routes, so coverage is guesswork; say so in the report.
-- `--pr` a GitHub pull request URL. Aims the run at the risk that change introduced (regression focus).
+Two things. Either form works for each; the operator gives you whatever they have.
+
+**The app under test.**
+- A URL that is already serving, or
+- a local project you boot yourself. Read its README or package.json, start it (`npm run dev`, `docker compose up`, whatever it uses), and wait until it answers.
+
+Confirm it responds before you test anything. Pointed at a dead app you will produce a confident empty report.
+
+**The source.**
+- A local folder, or
+- a git URL. Clone it, then work from the clone.
+
+You must read the frontend and backend to enumerate every route the server registers. That count is your coverage denominator. With no source you cannot know what you missed, so say that plainly in the report and treat coverage as unknown.
+
+Optionally a pull request URL, which aims the run at regression around that change.
 
 Work in the current directory. Write the output files there.
 
