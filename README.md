@@ -119,7 +119,7 @@ artifacts/<run>/
   QA-REPORT.md       the thing a developer reads
 ```
 
-[`examples/juice-shop/`](examples/juice-shop) holds a real run: the four maps, the plan, the triage and the generated specs.
+[`examples/juice-shop/`](examples/juice-shop) holds a real run: the UI map, the API surface, the coverage map, the test plan, the triage and the generated specs.
 
 ## Design decisions
 
