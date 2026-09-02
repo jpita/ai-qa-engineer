@@ -59,7 +59,7 @@ Every agent in a run must have the SAME tools, or the comparison measures the se
 ## Inputs
 
 - `--url` the running app. Required.
-- `--source` path or git URL of the app source (frontend and backend). Without it, coverage is guesswork; say so in the report.
+- `--source` local path to the app source (frontend and backend). The running app is a checkout on disk; point at that. Without it you cannot enumerate the routes, so coverage is guesswork; say so in the report.
 - `--pr` a GitHub pull request URL. Aims the run at the risk that change introduced (regression focus).
 
 Work in the current directory. Write the output files there.
