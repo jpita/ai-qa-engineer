@@ -1,0 +1,10 @@
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:v20.2.0
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/rest/admin/application-version"]
+      interval: 5s
+      timeout: 3s
+      retries: 20

@@ -1,0 +1,127 @@
+{
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/rest/user/login",
+      "handlerFile": "routes/login.ts",
+      "purpose": "Authenticate a user and return a bearer token plus basket id",
+      "requiredFields": ["email", "password"],
+      "statusCodes": [200, 401, 500],
+      "validationRules": [
+        "No validation of any kind on email or password",
+        "email is concatenated directly into raw SQL: SELECT * FROM Users WHERE email = '${req.body.email || ''}'",
+        "password is hashed before concatenation, so it is not an injection point",
+        "401 with body status 'totp_token_required' when the matched user has a totpSecret",
+        "401 with text 'Invalid email or password.' when no user matches",
+        "handler errors are passed to next(), producing a 500"
+      ],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/rest/products/search",
+      "handlerFile": "routes/search.ts",
+      "purpose": "Search products by name or description",
+      "requiredFields": [],
+      "statusCodes": [200, 500],
+      "validationRules": [
+        "query param q is optional; the literal string 'undefined' is treated as empty",
+        "q is truncated to the first 200 characters",
+        "q is concatenated into raw SQL: SELECT * FROM Products WHERE name LIKE '%${criteria}%' OR description LIKE '%${criteria}%'",
+        "no escaping, no parameterisation, no type check",
+        "errors are passed to next(), producing a 500"
+      ],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/rest/user/whoami",
+      "handlerFile": "routes/currentUser.ts",
+      "purpose": "Return the currently authenticated user",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/rest/admin/application-configuration",
+      "handlerFile": "routes/appConfiguration.ts",
+      "purpose": "Return the running application configuration to the client",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/rest/admin/application-version",
+      "handlerFile": "routes/appVersion.ts",
+      "purpose": "Return the application version string",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/rest/captcha/",
+      "handlerFile": "routes/captcha.ts",
+      "purpose": "Issue a captcha challenge used by the contact form",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/rest/languages",
+      "handlerFile": "routes/languages.ts",
+      "purpose": "List available UI languages",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/Users",
+      "handlerFile": "server.ts:427-441",
+      "purpose": "Register a new user",
+      "requiredFields": ["email", "password"],
+      "statusCodes": [201, 400],
+      "validationRules": [
+        "four separate handlers are registered on this same path in server.ts (lines 427, 439, 440, 441)",
+        "verify.passwordRepeatChallenge and verify.emptyUserRegistration are registered as middleware on it"
+      ],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/Challenges/",
+      "handlerFile": "server.ts (sequelize auto-generated REST)",
+      "purpose": "List the 116 documented challenges and their solved state",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/Quantitys/",
+      "handlerFile": "server.ts (sequelize auto-generated REST)",
+      "purpose": "List product stock quantities",
+      "requiredFields": [],
+      "statusCodes": [200],
+      "validationRules": [],
+      "authRequired": false
+    }
+  ],
+  "notes": [
+    "server.ts registers 102 distinct method+path routes. I read the handlers for 10 of them and listed only those.",
+    "The 92 routes not listed here were not read, so this surface is deliberately partial. Coverage numbers below are against the 10 read, not against the whole app.",
+    "requiredFields and statusCodes for POST /api/Users are incomplete: four handlers share that path and I read only the registration lines, not each handler body.",
+    "statusCodes for the sequelize auto-generated REST routes (/api/*) were not read from source; only 200 is listed because that is what the crawl observed.",
+    "No auth guard was seen on any of the 10 routes read. That is what the source shows, not an assumption that the app has no auth anywhere."
+  ]
+}

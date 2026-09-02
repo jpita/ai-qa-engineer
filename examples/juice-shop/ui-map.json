@@ -1,0 +1,1613 @@
+{
+  "target": "http://localhost:3000",
+  "crawledAt": "2026-09-01T13:55:08.802Z",
+  "pages": [
+    {
+      "url": "http://localhost:3000/",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Previous page",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Next page",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Open Worldwide Application Security Project (OWASP)",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "https://owasp-juice.shop",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "school Help getting started",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Close Welcome Banner",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Force page reload",
+          "selector": "button"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/socket.io/",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/assets/i18n/en.json",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-version",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-configuration",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/socket.io/",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/languages",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/products/search",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/Challenges/",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/Quantitys/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "url": "http://localhost:3000/#/login",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "input",
+          "name": "Text field for the login email",
+          "selector": "#email"
+        },
+        {
+          "role": "input",
+          "name": "Text field for the login password",
+          "selector": "#password"
+        },
+        {
+          "role": "button",
+          "name": "Button to display the password",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Forgot your password?",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Login",
+          "selector": "#loginButton"
+        },
+        {
+          "role": "input",
+          "name": "Checkbox to stay logged in or not logged in",
+          "selector": "#rememberMe-input"
+        },
+        {
+          "role": "a",
+          "name": "Not yet a customer?",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Force page reload",
+          "selector": "button"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-configuration",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "url": "http://localhost:3000/#/contact",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "#userId"
+        },
+        {
+          "role": "input",
+          "name": "Field with the name of the author",
+          "selector": "#mat-input-3"
+        },
+        {
+          "role": "textarea",
+          "name": "Field for entering the comment or the feedback",
+          "selector": "#comment"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "input",
+          "name": "Field for the result of the CAPTCHA code",
+          "selector": "#captchaControl"
+        },
+        {
+          "role": "button",
+          "name": "Button to send the review",
+          "selector": "#submitButton"
+        },
+        {
+          "role": "button",
+          "name": "Force page reload",
+          "selector": "button"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/rest/user/whoami",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/captcha/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "url": "http://localhost:3000/#/chatbot",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "textarea",
+          "name": "Ask me anything",
+          "selector": "textarea"
+        },
+        {
+          "role": "button",
+          "name": "Send message",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "help_outlineGet help",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Force page reload",
+          "selector": "button"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-configuration",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "url": "http://localhost:3000/#/about",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "textarea",
+          "name": "Ask me anything",
+          "selector": "textarea"
+        },
+        {
+          "role": "button",
+          "name": "Send message",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "local_drinkGet a suggestion",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "help_outlineGet help",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Force page reload",
+          "selector": "button"
+        }
+      ],
+      "calls": []
+    },
+    {
+      "url": "http://localhost:3000/#/photo-wall",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "button",
+          "name": "Force page reload",
+          "selector": "button"
+        }
+      ],
+      "calls": []
+    },
+    {
+      "url": "http://localhost:3000/redirect",
+      "title": "TypeError: Cannot read properties of undefined (reading 'includes')",
+      "elements": [],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-configuration",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "url": "http://localhost:3000/#/search",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Click for more information about the product",
+          "selector": "section"
+        },
+        {
+          "role": "button",
+          "name": "Add to Basket",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Previous page",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Next page",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Open Worldwide Application Security Project (OWASP)",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "https://owasp-juice.shop",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "school Help getting started",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Close Welcome Banner",
+          "selector": "button"
+        }
+      ],
+      "calls": [
+        {
+          "method": "GET",
+          "path": "/socket.io/",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/assets/i18n/en.json",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-version",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/admin/application-configuration",
+          "status": 200
+        },
+        {
+          "method": "POST",
+          "path": "/socket.io/",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/languages",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/rest/products/search",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/Challenges/",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/Quantitys/",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "url": "http://localhost:3000/#/basket",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "button",
+          "name": "Checkout",
+          "selector": "#checkoutButton"
+        }
+      ],
+      "calls": []
+    },
+    {
+      "url": "http://localhost:3000/#/forgot-password",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "input",
+          "name": "Email address field",
+          "selector": "#email"
+        },
+        {
+          "role": "input",
+          "name": "Field for the answer to the security question",
+          "selector": "#securityAnswer"
+        },
+        {
+          "role": "input",
+          "name": "Field for New Password",
+          "selector": "#newPassword"
+        },
+        {
+          "role": "input",
+          "name": "Field to confirm the new password",
+          "selector": "#newPasswordRepeat"
+        },
+        {
+          "role": "switch",
+          "name": "",
+          "selector": "#mat-mdc-slide-toggle-0-button"
+        },
+        {
+          "role": "button",
+          "name": "Button to confirm the changes",
+          "selector": "#resetButton"
+        }
+      ],
+      "calls": []
+    },
+    {
+      "url": "http://localhost:3000/#/register",
+      "title": "OWASP Juice Shop",
+      "elements": [
+        {
+          "role": "button",
+          "name": "learn more about cookies",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "dismiss cookie message",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "",
+          "selector": "button"
+        },
+        {
+          "role": "a",
+          "name": "Go to login page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to contact us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to AI chat page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to about us page",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to photo wall",
+          "selector": "a"
+        },
+        {
+          "role": "a",
+          "name": "Go to OWASP Juice Shop GitHub page",
+          "selector": "a"
+        },
+        {
+          "role": "button",
+          "name": "Open Sidenav",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Back to homepage",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Open search",
+          "selector": "button"
+        },
+        {
+          "role": "input",
+          "name": "",
+          "selector": "input"
+        },
+        {
+          "role": "button",
+          "name": "Close search",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Show/hide account menu",
+          "selector": "#navbarAccount"
+        },
+        {
+          "role": "button",
+          "name": "Show the shopping cart",
+          "selector": "button"
+        },
+        {
+          "role": "button",
+          "name": "Language selection menu",
+          "selector": "#navbarLanguageButton"
+        },
+        {
+          "role": "input",
+          "name": "Email address field",
+          "selector": "#emailControl"
+        },
+        {
+          "role": "input",
+          "name": "Field for the password",
+          "selector": "#passwordControl"
+        },
+        {
+          "role": "input",
+          "name": "Field to confirm the password",
+          "selector": "#repeatPasswordControl"
+        },
+        {
+          "role": "switch",
+          "name": "",
+          "selector": "#mat-mdc-slide-toggle-1-button"
+        },
+        {
+          "role": "input",
+          "name": "Field for the answer to the security question",
+          "selector": "#securityAnswerControl"
+        },
+        {
+          "role": "button",
+          "name": "Button to complete the registration",
+          "selector": "#registerButton"
+        },
+        {
+          "role": "a",
+          "name": "Already a customer?",
+          "selector": "a"
+        }
+      ],
+      "calls": []
+    }
+  ]
+}

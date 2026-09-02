@@ -1,0 +1,34 @@
+{
+  "name": "ai-qa-engineer",
+  "version": "0.1.0",
+  "private": false,
+  "description": "A Claude Code skill that inspects a web app and its source, plans and writes tests at the right layer, runs them, and triages the failures",
+  "type": "module",
+  "scripts": {
+    "crawl": "tsx scripts/crawl.ts",
+    "coverage": "tsx scripts/coverage.ts",
+    "run-specs": "tsx scripts/run.ts",
+    "report": "tsx scripts/report.ts",
+    "validate": "tsx scripts/validate.ts",
+    "app:up": "docker compose up -d --wait",
+    "app:down": "docker compose down -v",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "bug-report": "tsx scripts/bug-report.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.62.1",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.4.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

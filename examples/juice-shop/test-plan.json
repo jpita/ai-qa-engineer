@@ -1,0 +1,525 @@
+{
+  "summary": "Feature baseline for OWASP Juice Shop 20.2.0. Covers the features a shopper actually uses: register, log in, search, basket, addresses, payment cards, order history, contact and language. Each endpoint that the UI calls is covered at both the API layer and the browser layer, because a direct call proves the server handles the payload the test chose, not that the app sends it. Failures here are the bug list for step 2.",
+  "riskAreas": [
+    {
+      "area": "Basket access",
+      "risk": "high",
+      "reason": "GET /rest/basket/:id takes an id from the URL and the source shows no ownership check next to the handler"
+    },
+    {
+      "area": "Authentication",
+      "risk": "high",
+      "reason": "routes/login.ts concatenates req.body.email into raw SQL with no validation"
+    },
+    {
+      "area": "Product search",
+      "risk": "high",
+      "reason": "routes/search.ts truncates q to 200 chars then concatenates it into a LIKE clause"
+    },
+    {
+      "area": "Resource id handling",
+      "risk": "medium",
+      "reason": "the app was observed requesting /rest/basket/NaN and /rest/track-order/undefined during a normal authenticated crawl"
+    },
+    {
+      "area": "Registration",
+      "risk": "medium",
+      "reason": "four handlers are registered on POST /api/Users at server.ts lines 427, 439, 440, 441"
+    }
+  ],
+  "cases": [
+    {
+      "id": "auth-01",
+      "title": "A new account can be registered",
+      "layer": "api",
+      "endpoint": "POST /api/Users",
+      "risk": "high",
+      "why": "registration is the entry point to every other feature",
+      "steps": [
+        "POST /api/Users with a unique email, password, passwordRepeat, securityQuestion and securityAnswer"
+      ],
+      "expected": "201, and the response body contains the new user id and email"
+    },
+    {
+      "id": "auth-02",
+      "title": "Registering with an email that already exists is rejected",
+      "layer": "api",
+      "endpoint": "POST /api/Users",
+      "risk": "medium",
+      "why": "duplicate accounts on one email break login and password reset",
+      "steps": [
+        "Register an account",
+        "POST /api/Users again with the same email"
+      ],
+      "expected": "a 4xx status, not 201, and no second user is created"
+    },
+    {
+      "id": "auth-03",
+      "title": "Valid credentials return a token",
+      "layer": "api",
+      "endpoint": "POST /rest/user/login",
+      "risk": "high",
+      "why": "every authenticated feature depends on this",
+      "steps": [
+        "POST /rest/user/login with the registered email and password"
+      ],
+      "expected": "200 and body authentication.token is a non-empty string, authentication.bid is a number"
+    },
+    {
+      "id": "auth-04",
+      "title": "A wrong password is rejected",
+      "layer": "api",
+      "endpoint": "POST /rest/user/login",
+      "risk": "high",
+      "why": "the negative path of the only auth gate",
+      "steps": [
+        "POST /rest/user/login with the registered email and the wrong password"
+      ],
+      "expected": "401, and no token in the body"
+    },
+    {
+      "id": "auth-05",
+      "title": "A user can log in through the login form",
+      "layer": "ui",
+      "endpoint": "POST /rest/user/login",
+      "risk": "high",
+      "why": "proves the form sends what the server expects, which a direct call cannot prove",
+      "steps": [
+        "Open #/login",
+        "Fill email and password",
+        "Wait for the login button to become enabled",
+        "Click it"
+      ],
+      "expected": "the POST /rest/user/login request returns 200 and the account menu shows the logged in user"
+    },
+    {
+      "id": "auth-06",
+      "title": "The login form shows an error for wrong credentials",
+      "layer": "ui",
+      "endpoint": "POST /rest/user/login",
+      "risk": "medium",
+      "why": "a 401 the user never sees is a broken feature",
+      "steps": [
+        "Open #/login",
+        "Enter a valid email and a wrong password",
+        "Submit"
+      ],
+      "expected": "an error message is visible to the user and the app stays on the login page"
+    },
+    {
+      "id": "auth-07",
+      "title": "The login form handles a server error",
+      "layer": "ui_mocked",
+      "endpoint": "POST /rest/user/login",
+      "risk": "medium",
+      "why": "the source passes handler errors to next(), so a 500 is reachable in production",
+      "steps": [
+        "Intercept POST /rest/user/login and fulfil it with 500",
+        "Open #/login and submit valid looking credentials"
+      ],
+      "expected": "the user sees an error message, the page does not hang on a spinner and does not go blank"
+    },
+    {
+      "id": "search-01",
+      "title": "Search returns matching products",
+      "layer": "api",
+      "endpoint": "GET /rest/products/search",
+      "risk": "high",
+      "why": "search is the main way a shopper finds anything",
+      "steps": [
+        "GET /rest/products/search?q=apple"
+      ],
+      "expected": "200 and every returned product has name or description containing the term"
+    },
+    {
+      "id": "search-02",
+      "title": "An empty search term returns the full catalogue rather than an error",
+      "layer": "api",
+      "endpoint": "GET /rest/products/search",
+      "risk": "medium",
+      "why": "the source treats the literal string undefined and an absent q as empty",
+      "steps": [
+        "GET /rest/products/search with no q",
+        "GET /rest/products/search?q="
+      ],
+      "expected": "200 in both cases and a non-empty product list"
+    },
+    {
+      "id": "search-03",
+      "title": "A search term with no matches returns an empty list, not an error",
+      "layer": "api",
+      "endpoint": "GET /rest/products/search",
+      "risk": "medium",
+      "why": "the empty result path is where LIKE based search usually breaks",
+      "steps": [
+        "GET /rest/products/search?q=zzzzzznotaproduct"
+      ],
+      "expected": "200 and an empty data array"
+    },
+    {
+      "id": "search-04",
+      "title": "A quote in the search term does not break the query",
+      "layer": "api",
+      "endpoint": "GET /rest/products/search",
+      "risk": "high",
+      "why": "the source concatenates q into a LIKE clause with no escaping",
+      "steps": [
+        "GET /rest/products/search?q=o'brien"
+      ],
+      "expected": "200 with a valid result list, not a 500 and not a database error in the body"
+    },
+    {
+      "id": "search-05",
+      "title": "Searching from the header returns results on the page",
+      "layer": "ui",
+      "endpoint": "GET /rest/products/search",
+      "risk": "high",
+      "why": "proves the UI sends the term the server expects",
+      "steps": [
+        "Open the app",
+        "Open the header search",
+        "Type apple and press Enter"
+      ],
+      "expected": "the GET /rest/products/search request fires with q=apple and matching products render"
+    },
+    {
+      "id": "search-06",
+      "title": "Search shows an empty state rather than a blank page",
+      "layer": "ui_mocked",
+      "endpoint": "GET /rest/products/search",
+      "risk": "medium",
+      "why": "empty state handling is invisible until the list is empty",
+      "steps": [
+        "Intercept GET /rest/products/search and fulfil with 200 and an empty data array",
+        "Search for anything"
+      ],
+      "expected": "the page tells the user nothing was found, and does not render an empty grid with no message"
+    },
+    {
+      "id": "basket-01",
+      "title": "A logged in user can read their own basket",
+      "layer": "api",
+      "endpoint": "GET /rest/basket/:id",
+      "risk": "high",
+      "why": "the core of the shopping flow",
+      "steps": [
+        "Log in and read authentication.bid from the response",
+        "GET /rest/basket/{bid} with the bearer token"
+      ],
+      "expected": "200 and data.UserId is the logged in user's id"
+    },
+    {
+      "id": "basket-02",
+      "title": "A user cannot read another user's basket",
+      "layer": "api",
+      "endpoint": "GET /rest/basket/:id",
+      "risk": "high",
+      "why": "the source shows no ownership check on this route",
+      "steps": [
+        "Register user A and user B",
+        "Log in as A",
+        "GET /rest/basket/{B's bid} with A's token"
+      ],
+      "expected": "403 or 404. A must not receive B's basket contents"
+    },
+    {
+      "id": "basket-03",
+      "title": "A basket id that does not exist is rejected",
+      "layer": "api",
+      "endpoint": "GET /rest/basket/:id",
+      "risk": "medium",
+      "why": "the app was seen requesting /rest/basket/NaN during a normal crawl",
+      "steps": [
+        "GET /rest/basket/999999 with a valid token",
+        "GET /rest/basket/NaN",
+        "GET /rest/basket/abc"
+      ],
+      "expected": "404 for the missing id and 400 for the non-numeric ones. Not 200 with a success status and null data"
+    },
+    {
+      "id": "basket-04",
+      "title": "The basket page shows the user's items",
+      "layer": "ui",
+      "endpoint": "GET /rest/basket/:id",
+      "risk": "high",
+      "why": "proves the page requests the right basket for the logged in user",
+      "steps": [
+        "Log in",
+        "Open #/basket"
+      ],
+      "expected": "the GET /rest/basket/{id} request uses the logged in user's own bid and the items render"
+    },
+    {
+      "id": "basket-05",
+      "title": "The basket page handles a failed load",
+      "layer": "ui_mocked",
+      "endpoint": "GET /rest/basket/:id",
+      "risk": "medium",
+      "why": "error handling on the most used authenticated page",
+      "steps": [
+        "Log in",
+        "Intercept GET /rest/basket/* and fulfil with 500",
+        "Open #/basket"
+      ],
+      "expected": "an error is shown to the user and the page does not stay on a spinner"
+    },
+    {
+      "id": "order-01",
+      "title": "Order history loads for a logged in user",
+      "layer": "api",
+      "endpoint": "GET /rest/order-history",
+      "risk": "medium",
+      "why": "only reachable once logged in, so it is easy to leave untested",
+      "steps": [
+        "GET /rest/order-history with a valid token"
+      ],
+      "expected": "200 and a data array"
+    },
+    {
+      "id": "order-02",
+      "title": "Order history requires authentication",
+      "layer": "api",
+      "endpoint": "GET /rest/order-history",
+      "risk": "high",
+      "why": "order history contains personal purchase data",
+      "steps": [
+        "GET /rest/order-history with no Authorization header"
+      ],
+      "expected": "401, and no order data in the body"
+    },
+    {
+      "id": "order-03",
+      "title": "An unknown order id is rejected",
+      "layer": "api",
+      "endpoint": "GET /rest/track-order/:id",
+      "risk": "medium",
+      "why": "the app was seen requesting /rest/track-order/undefined during a normal crawl",
+      "steps": [
+        "GET /rest/track-order/undefined",
+        "GET /rest/track-order/does-not-exist"
+      ],
+      "expected": "404 or an empty result. Not 200 with status success and the literal id echoed back as a real order"
+    },
+    {
+      "id": "addr-01",
+      "title": "Addresses require authentication",
+      "layer": "api",
+      "endpoint": "GET /api/Addresss",
+      "risk": "high",
+      "why": "addresses are personal data and only appeared in the authenticated crawl",
+      "steps": [
+        "GET /api/Addresss with no Authorization header"
+      ],
+      "expected": "401, and no address data"
+    },
+    {
+      "id": "addr-02",
+      "title": "The saved addresses page lists the user's addresses",
+      "layer": "ui",
+      "endpoint": "GET /api/Addresss",
+      "risk": "medium",
+      "why": "proves the page calls the endpoint with the right auth",
+      "steps": [
+        "Log in",
+        "Open #/address/saved"
+      ],
+      "expected": "GET /api/Addresss returns 200 and the page renders the list or an explicit empty state"
+    },
+    {
+      "id": "card-01",
+      "title": "Payment cards require authentication",
+      "layer": "api",
+      "endpoint": "GET /api/Cards",
+      "risk": "high",
+      "why": "card data is the most sensitive thing in the app",
+      "steps": [
+        "GET /api/Cards with no Authorization header"
+      ],
+      "expected": "401, and no card data"
+    },
+    {
+      "id": "lang-01",
+      "title": "The language list loads",
+      "layer": "api",
+      "endpoint": "GET /rest/languages",
+      "risk": "low",
+      "why": "the header language menu depends on it on every page",
+      "steps": [
+        "GET /rest/languages"
+      ],
+      "expected": "200 and a non-empty array that includes en"
+    },
+    {
+      "id": "lang-02",
+      "title": "The app still renders when the language list fails",
+      "layer": "ui_mocked",
+      "endpoint": "GET /rest/languages",
+      "risk": "medium",
+      "why": "this call fires on every page, so a failure would be site wide",
+      "steps": [
+        "Intercept GET /rest/languages and fulfil with 500",
+        "Open the app"
+      ],
+      "expected": "the page still renders in the default language and does not go blank"
+    },
+    {
+      "id": "cfg-01",
+      "title": "The application configuration loads",
+      "layer": "api",
+      "endpoint": "GET /rest/admin/application-configuration",
+      "risk": "low",
+      "why": "requested on five different pages, so the whole UI depends on it",
+      "steps": [
+        "GET /rest/admin/application-configuration"
+      ],
+      "expected": "200 and a config object"
+    },
+    {
+      "id": "contact-01",
+      "title": "A captcha is issued for the contact form",
+      "layer": "api",
+      "endpoint": "GET /rest/captcha/",
+      "risk": "low",
+      "why": "the contact form cannot be submitted without it",
+      "steps": [
+        "GET /rest/captcha/"
+      ],
+      "expected": "200 with a captcha question and an id"
+    },
+    {
+      "id": "contact-02",
+      "title": "The contact page loads its captcha",
+      "layer": "ui",
+      "endpoint": "GET /rest/captcha/",
+      "risk": "medium",
+      "why": "proves the page requests and renders the captcha it needs",
+      "steps": [
+        "Log in",
+        "Open #/contact"
+      ],
+      "expected": "GET /rest/captcha/ returns 200 and the captcha question is visible on the form"
+    },
+    {
+      "id": "sess-01",
+      "title": "whoami returns the logged in user",
+      "layer": "api",
+      "endpoint": "GET /rest/user/whoami",
+      "risk": "high",
+      "why": "the app uses this to decide whether a session is still valid",
+      "steps": [
+        "GET /rest/user/whoami with a valid bearer token"
+      ],
+      "expected": "200 and the body contains the logged in user's email and id"
+    },
+    {
+      "id": "sess-02",
+      "title": "whoami returns no user when not authenticated",
+      "layer": "api",
+      "endpoint": "GET /rest/user/whoami",
+      "risk": "high",
+      "why": "if this leaked a user for an anonymous caller the whole session model would be wrong",
+      "steps": [
+        "GET /rest/user/whoami with no Authorization header"
+      ],
+      "expected": "an empty user object or a 401. No email, id or role for an anonymous caller"
+    },
+    {
+      "id": "sess-03",
+      "title": "The contact page identifies the logged in user",
+      "layer": "ui",
+      "endpoint": "GET /rest/user/whoami",
+      "risk": "medium",
+      "why": "proves the page sends the session the server expects",
+      "steps": [
+        "Log in",
+        "Open #/contact"
+      ],
+      "expected": "GET /rest/user/whoami returns 200 and the form is prefilled for the logged in user"
+    },
+    {
+      "id": "cfg-02",
+      "title": "Every page loads the application configuration",
+      "layer": "ui",
+      "endpoint": "GET /rest/admin/application-configuration",
+      "risk": "medium",
+      "why": "five different pages request it, so a failure would be site wide",
+      "steps": [
+        "Open the app",
+        "Navigate to #/login then #/search"
+      ],
+      "expected": "GET /rest/admin/application-configuration returns 200 on each page and the branding and titles render from it"
+    },
+    {
+      "id": "ver-01",
+      "title": "The version endpoint returns a version string",
+      "layer": "api",
+      "endpoint": "GET /rest/admin/application-version",
+      "risk": "low",
+      "why": "the UI displays it and support uses it to identify a build",
+      "steps": [
+        "GET /rest/admin/application-version"
+      ],
+      "expected": "200 and a non-empty version string"
+    },
+    {
+      "id": "ver-02",
+      "title": "The version is shown in the UI",
+      "layer": "ui",
+      "endpoint": "GET /rest/admin/application-version",
+      "risk": "low",
+      "why": "a version the user can never see is not a feature",
+      "steps": [
+        "Open the app"
+      ],
+      "expected": "the version from the endpoint appears somewhere in the page"
+    },
+    {
+      "id": "stock-01",
+      "title": "Product quantities load",
+      "layer": "api",
+      "endpoint": "GET /api/Quantitys/",
+      "risk": "medium",
+      "why": "the product list uses it to show stock and to block over-ordering",
+      "steps": [
+        "GET /api/Quantitys/"
+      ],
+      "expected": "200 and an array where each row has a ProductId and a quantity"
+    },
+    {
+      "id": "stock-02",
+      "title": "The product list reflects stock",
+      "layer": "ui",
+      "endpoint": "GET /api/Quantitys/",
+      "risk": "medium",
+      "why": "proves the page uses the quantity data it fetches",
+      "steps": [
+        "Open the app and wait for the product grid"
+      ],
+      "expected": "GET /api/Quantitys/ returns 200 and products render with their stock state"
+    },
+    {
+      "id": "chal-01",
+      "title": "The challenge list is readable",
+      "layer": "api",
+      "endpoint": "GET /api/Challenges/",
+      "risk": "low",
+      "why": "this run uses it as the independent oracle for whether a bug is really fixed, so it must be reliable",
+      "steps": [
+        "GET /api/Challenges/"
+      ],
+      "expected": "200 and 116 challenges, each with a name, category and solved flag"
+    },
+    {
+      "id": "chal-02",
+      "title": "The score board renders the challenge list",
+      "layer": "ui",
+      "endpoint": "GET /api/Challenges/",
+      "risk": "low",
+      "why": "the page exists and calls the endpoint, so it is part of the feature surface",
+      "steps": [
+        "Open #/score-board"
+      ],
+      "expected": "GET /api/Challenges/ returns 200 and challenges render on the page"
+    }
+  ]
+}

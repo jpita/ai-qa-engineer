@@ -1,0 +1,127 @@
+{
+  "links": [
+    {
+      "endpoint": "POST /rest/user/login",
+      "callerFiles": [
+        "frontend/src/app/Services/user.service.ts"
+      ],
+      "callerPages": [],
+      "source": "source"
+    },
+    {
+      "endpoint": "GET /rest/products/search",
+      "callerFiles": [
+        "frontend/src/app/Services/product.service.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/",
+        "http://localhost:3000/#/search"
+      ],
+      "source": "both"
+    },
+    {
+      "endpoint": "GET /rest/user/whoami",
+      "callerFiles": [
+        "frontend/src/app/Services/user.service.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/#/contact"
+      ],
+      "source": "both"
+    },
+    {
+      "endpoint": "GET /rest/admin/application-configuration",
+      "callerFiles": [
+        "frontend/src/hacking-instructor/helpers/helpers.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/",
+        "http://localhost:3000/#/login",
+        "http://localhost:3000/#/chatbot",
+        "http://localhost:3000/redirect",
+        "http://localhost:3000/#/search"
+      ],
+      "source": "both"
+    },
+    {
+      "endpoint": "GET /rest/admin/application-version",
+      "callerFiles": [],
+      "callerPages": [
+        "http://localhost:3000/",
+        "http://localhost:3000/#/search"
+      ],
+      "source": "observed"
+    },
+    {
+      "endpoint": "GET /rest/captcha/",
+      "callerFiles": [
+        "frontend/src/app/Services/captcha.service.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/#/contact"
+      ],
+      "source": "both"
+    },
+    {
+      "endpoint": "GET /rest/languages",
+      "callerFiles": [
+        "frontend/src/app/Services/languages.service.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/",
+        "http://localhost:3000/#/search"
+      ],
+      "source": "both"
+    },
+    {
+      "endpoint": "POST /api/Users",
+      "callerFiles": [
+        "data/static/codefixes/changeProductChallenge_1.ts",
+        "data/static/codefixes/changeProductChallenge_2.ts",
+        "data/static/codefixes/changeProductChallenge_3_correct.ts",
+        "data/static/codefixes/changeProductChallenge_4.ts",
+        "frontend/src/app/Services/user.service.ts"
+      ],
+      "callerPages": [],
+      "source": "source"
+    },
+    {
+      "endpoint": "GET /api/Challenges/",
+      "callerFiles": [
+        "data/static/codefixes/changeProductChallenge_1.ts",
+        "data/static/codefixes/changeProductChallenge_2.ts",
+        "data/static/codefixes/changeProductChallenge_3_correct.ts",
+        "data/static/codefixes/changeProductChallenge_4.ts",
+        "frontend/src/app/Services/challenge.service.ts",
+        "frontend/src/app/Services/keys.service.ts",
+        "frontend/src/hacking-instructor/helpers/helpers.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/",
+        "http://localhost:3000/#/search"
+      ],
+      "source": "both"
+    },
+    {
+      "endpoint": "GET /api/Quantitys/",
+      "callerFiles": [
+        "data/static/codefixes/changeProductChallenge_1.ts",
+        "data/static/codefixes/changeProductChallenge_2.ts",
+        "data/static/codefixes/changeProductChallenge_3_correct.ts",
+        "data/static/codefixes/changeProductChallenge_4.ts",
+        "frontend/src/app/Services/quantity.service.ts"
+      ],
+      "callerPages": [
+        "http://localhost:3000/",
+        "http://localhost:3000/#/search"
+      ],
+      "source": "both"
+    }
+  ],
+  "endpointsWithNoUiCaller": [],
+  "callsWithNoKnownEndpoint": [
+    "GET /socket.io/",
+    "GET /assets/i18n/en.json",
+    "POST /socket.io/"
+  ]
+}

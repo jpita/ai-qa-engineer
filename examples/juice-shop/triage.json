@@ -1,0 +1,98 @@
+{
+  "verdicts": [
+    {
+      "caseId": "basket-02",
+      "verdict": "product_bug",
+      "confidence": "high",
+      "evidence": [
+        "GET /rest/basket/{B} with user A's bearer token returned 200 and B's basket body",
+        "verified outside the test: my own bid was 6, GET /rest/basket/1 returned data.UserId 1",
+        "routes/basket.ts is registered at server.ts with no ownership guard next to it",
+        "the app's own challenge tracker independently marked 'View Basket' (Broken Access Control) solved"
+      ],
+      "reasoning": "The handler reads the id from the URL and returns that basket without comparing it to the caller's identity. Any authenticated user can read any other user's basket by changing one number.",
+      "suggestedFix": null
+    },
+    {
+      "caseId": "basket-03",
+      "verdict": "product_bug",
+      "confidence": "high",
+      "evidence": [
+        "GET /rest/basket/999999 returned 200 {\"status\":\"success\",\"data\":null}",
+        "GET /rest/basket/NaN and /rest/basket/abc returned the same",
+        "GET /rest/basket/1 returns a real basket, so 200 is not a blanket response"
+      ],
+      "reasoning": "A missing or non-numeric id produces a success status with a null payload instead of 404 or 400. Callers cannot distinguish an empty basket from one that does not exist, and the frontend was observed requesting /rest/basket/NaN during a normal authenticated crawl.",
+      "suggestedFix": null
+    },
+    {
+      "caseId": "search-04",
+      "verdict": "product_bug",
+      "confidence": "high",
+      "evidence": [
+        "GET /rest/products/search?q=o%27brien returned 500",
+        "the response body contains SQLITE_ERROR: near \"brien\": syntax error",
+        "routes/search.ts concatenates the term into: SELECT * FROM Products WHERE name LIKE '%${criteria}%'"
+      ],
+      "reasoning": "A single quote in an ordinary search term terminates the SQL string and produces a syntax error. Two defects: the query is built by string concatenation, and the raw database error is returned to the client.",
+      "suggestedFix": null
+    },
+    {
+      "caseId": "order-02",
+      "verdict": "product_bug",
+      "confidence": "high",
+      "evidence": [
+        "GET /rest/order-history with no Authorization header returned 500",
+        "confirmed outside the test with curl against a clean instance on port 3001"
+      ],
+      "reasoning": "An unauthenticated request to a personal-data endpoint should be rejected with 401. It raises a server error instead, which is both wrong behaviour and an unhandled path.",
+      "suggestedFix": null
+    },
+    {
+      "caseId": "order-03",
+      "verdict": "product_bug",
+      "confidence": "high",
+      "evidence": [
+        "GET /rest/track-order/undefined returned 200 {\"status\":\"success\",\"data\":[{\"orderId\":\"undefined\"}]}",
+        "no authentication was needed to reproduce it",
+        "the frontend was observed firing this exact request from #/track-result during a normal crawl"
+      ],
+      "reasoning": "The literal string 'undefined' is accepted as an order id and reported as a successful lookup. The endpoint does not validate the id, and the frontend sends an undefined value.",
+      "suggestedFix": null
+    },
+    {
+      "caseId": "sess-01",
+      "verdict": "test_bug",
+      "confidence": "high",
+      "evidence": [
+        "routes/currentUser.ts reads the token from req.cookies.token, not from the Authorization header",
+        "the test sent Authorization: Bearer <token>, which this handler never reads"
+      ],
+      "reasoning": "The endpoint authenticates by cookie. The test used a bearer header, so the handler correctly saw an anonymous caller and returned an empty user. The application behaved correctly.",
+      "suggestedFix": "Send the token as a cookie in the request context instead of an Authorization header."
+    },
+    {
+      "caseId": "cfg-02",
+      "verdict": "test_bug",
+      "confidence": "high",
+      "evidence": [
+        "instrumented run: 6 application-configuration responses on the home page, 7 after navigating to #/login",
+        "the endpoint returns 200 every time; nothing failed on the server"
+      ],
+      "reasoning": "The test raced its own navigation. On a hash-only route change the request can fire before waitForResponse is attached, so the wait timed out even though the call succeeded.",
+      "suggestedFix": "Attach the response wait before triggering navigation, or assert on the config-derived content rendering rather than on the request timing."
+    },
+    {
+      "caseId": "search-05",
+      "verdict": "test_bug",
+      "confidence": "high",
+      "evidence": [
+        "Playwright log: <div class=\"cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing\"> intercepts pointer events",
+        "the click on [aria-label=\"Open search\"] retried for 30s and never landed",
+        "the search term arrived as an empty string, so the field was never filled"
+      ],
+      "reasoning": "The welcome banner's overlay backdrop stays in the DOM after the banner itself is dismissed and swallows every click. The test's dismiss step removed the banner but not the backdrop, so the search was never opened.",
+      "suggestedFix": "Wait for .cdk-overlay-backdrop to detach after dismissing the banner, before interacting with the header."
+    }
+  ]
+}
