@@ -87,9 +87,11 @@ case "$AGENT" in
     echo "(allow file-read* file-write* (subpath \"$H/.reasonix\"))"
     ;;
   antigravity)
-    echo ";; ---- 2. antigravity's own cache + keychain (its session lives there) ----"
-    echo "(allow file-read* file-write* process-exec (subpath \"$H/.cache/antigravity\") (subpath \"$H/.local/bin\"))"
-    echo "(allow file-read* (subpath \"$H/Library/Keychains\"))" ;;
+    # agy uses ~/.gemini as its home (oauth_creds.json, settings.json, antigravity-cli/),
+    # NOT ~/.cache/antigravity, which is only a staging dir for the installer.
+    echo ";; ---- 2. antigravity's own home and binary ----"
+    echo "(allow file-read* file-write* process-exec (subpath \"$H/.gemini\") (subpath \"$H/.cache/antigravity\") (subpath \"$H/.local/bin\"))"
+    echo "(deny file-read* (subpath \"$H/.gemini/history\"))" ;;
   none) echo ";; ---- 2. no agent credential re-allowed ----" ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac
