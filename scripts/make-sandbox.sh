@@ -60,7 +60,11 @@ EOF
 case "$AGENT" in
   claude)
     echo ";; ---- 2. claude's own auth, minus the operator's private context ----"
-    echo "(allow file-read* file-write* (subpath \"$H/.claude\") (literal \"$H/.claude.json\") (subpath \"$H/Library/Keychains\"))"
+    echo "(allow file-read* file-write* (subpath \"$H/.claude\") (literal \"$H/.claude.json\"))"
+    echo ";; Claude Code's token lives in login.keychain-db. SBPL is file-level and that one"
+    echo ";; file holds every keychain item, so this grants READ of the whole login keychain."
+    echo ";; Read-only: the agent cannot modify or delete credentials. See docs/SANDBOX-MACOS.md."
+    echo "(allow file-read* (subpath \"$H/Library/Keychains\"))"
     echo "(deny file-read* (literal \"$H/.claude/CLAUDE.md\") (subpath \"$H/.claude/skills\") (subpath \"$H/.claude/projects\") (subpath \"$H/.claude/history\"))"
     ;;
   codex)

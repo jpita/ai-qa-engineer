@@ -2,6 +2,11 @@ node_modules/
 dist/
 .env
 artifacts/
-!artifacts/.gitkeep
 playwright-report/
 test-results/
+
+# produced by scripts/run-agent.sh
+runs/
+scripts/pw-mcp.json
+*.sb
+run.log

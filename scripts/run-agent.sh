@@ -51,7 +51,9 @@ When findings.json, coverage.json and the bug-report HTML are written, stop.
 ===== SKILL =====
 $SKILL"
 
-# One identical browser tool for every agent, or the run measures the tooling.
+# Every agent must have the SAME browser tool or the run measures the tooling.
+# Only claude takes an MCP config per invocation. codex, grok, kimi and deepseek read
+# their own config files, so wire those up first (see docs/QUICKSTART.md step 1).
 # --no-sandbox is required: Chromium's own sandbox cannot nest inside sandbox-exec.
 PW_CFG="$REPO/scripts/pw-mcp.json"
 cat > "$PW_CFG" <<'JSON'
