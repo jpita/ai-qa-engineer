@@ -29,22 +29,38 @@ JSON
 
 mkdir -p /tmp/pw; export PWTEST_SOCKETS_DIR=/tmp/pw
 cap() { perl -e 'alarm shift; exec @ARGV' "$TIMEOUT" "$@" 2>&1; }
+# shellcheck source=scripts/models.env
+. "$REPO/scripts/models.env"
 
 echo "expecting the title: \"$EXPECT\""
 fail=0
 for a in "${AGENTS[@]}"; do
-  printf '  %-9s %-22s ' "$a" "$(bash "$REPO/scripts/model-of.sh" "$a")"
   case "$a" in
-    claude)   out=$(cap claude -p "$PROMPT" --strict-mcp-config \
+    claude)      MODEL="$MODEL_CLAUDE" ;;
+    codex)       MODEL="$MODEL_CODEX" ;;
+    grok)        MODEL="$MODEL_GROK" ;;
+    kimi)        MODEL="$MODEL_KIMI" ;;
+    deepseek)    MODEL="$MODEL_DEEPSEEK" ;;
+    antigravity) MODEL="$MODEL_ANTIGRAVITY" ;;
+    *) echo "unknown agent: $a" >&2; fail=1; continue ;;
+  esac
+  if [ -z "$MODEL" ]; then
+    printf '  %-9s %-22s no model set in scripts/models.env - skipped\n' "$a" ""
+    fail=1; continue
+  fi
+  printf '  %-9s %-22s ' "$a" "$MODEL"
+  case "$a" in
+    claude)   out=$(cap claude -p "$PROMPT" --model "$MODEL" --strict-mcp-config \
                 --mcp-config "$PW_CFG" --permission-mode bypassPermissions </dev/null) ;;
     codex)    out=$(cap codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox \
                 -c 'mcp_servers.playwright.command="npx"' \
                 -c 'mcp_servers.playwright.args=["-y","@playwright/mcp@latest","--headless","--isolated","--no-sandbox"]' \
-                "$PROMPT" </dev/null) ;;
-    grok)     out=$(cap grok -p "$PROMPT" --always-approve --no-plan </dev/null) ;;
-    kimi)     out=$(cap "$HOME/.kimi-code/bin/kimi" -p "$PROMPT" </dev/null) ;;
-    deepseek) out=$(cap reasonix -p "$PROMPT" </dev/null) ;;
-    antigravity) out=$(cap "$HOME/.local/bin/agy" -p "$PROMPT" --dangerously-skip-permissions </dev/null) ;;
+                -m "$MODEL" "$PROMPT" </dev/null) ;;
+    grok)     out=$(cap grok -p "$PROMPT" -m "$MODEL" --always-approve --no-plan </dev/null) ;;
+    kimi)     out=$(cap "$HOME/.kimi-code/bin/kimi" -p "$PROMPT" -m "$MODEL" </dev/null) ;;
+    deepseek) out=$(cap reasonix -p "$PROMPT" --model "$MODEL" -y </dev/null) ;;
+    antigravity) out=$(cap "$HOME/.local/bin/agy" -p "$PROMPT" --model "$MODEL" \
+                --effort "$ANTIGRAVITY_EFFORT" --dangerously-skip-permissions </dev/null) ;;
     *) echo "unknown agent"; fail=1; continue ;;
   esac
   if printf '%s' "$out" | grep -qF "$EXPECT"; then

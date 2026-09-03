@@ -152,6 +152,30 @@ routes built dynamically. The real denominator comes from reading the route file
 | Grok exits clean, no output | add `--always-approve --no-plan` |
 | Empty report | curl the URL yourself; the app was probably down |
 
+## Comparing agents
+
+For a run across several agents, `scripts/run-agent.sh` does what step 3 does by
+hand, plus a per-agent sandbox (see [SANDBOX-MACOS.md](SANDBOX-MACOS.md)).
+
+```bash
+BASE_URL=http://localhost:3000 APP_NAME=conduit ./scripts/run-agent.sh claude
+```
+
+Every model is pinned in one file, `scripts/models.env`, and sent explicitly with
+`-m`/`--model` to each CLI. Never rely on a CLI's own default: it can change between
+two runs with no warning, which breaks a comparison silently and mislabels every
+report with the wrong model. Edit `scripts/models.env` to set the tier.
+
+Before a comparison run, prove every agent can actually reach its model and drive
+the browser:
+
+```bash
+BASE_URL=http://localhost:3000 ./scripts/preflight.sh all
+```
+
+It asks each agent for the page `<title>`, which only comes back right with a
+working model and a working browser. Run it after any change to `models.env`.
+
 ## Warning
 
 Every command here bypasses approval prompts: the agent gets your shell, your permissions, for the length of the run. Fine on a personal machine with a throwaway app. Not fine where `$HOME` holds SSH keys and cloud credentials — see [SANDBOX-MACOS.md](SANDBOX-MACOS.md).

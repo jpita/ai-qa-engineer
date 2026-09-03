@@ -19,13 +19,25 @@ APP_NAME="${APP_NAME:-app}"
 OUT_DIR="${OUT_DIR:-$REPO/runs/$AGENT}"
 SKILL_FILE="${SKILL_FILE:-$REPO/SKILL.md}"
 
-# Each CLI uses the model in its OWN config. Set the tier there, once, not here —
-# a name hardcoded in this script goes stale and mislabels every report it names.
+# The model pin lives in one file: scripts/models.env. It is sent explicitly with
+# -m/--model to every CLI call below. Never rely on a CLI's own default — it can
+# change between two runs with no warning, which breaks a comparison silently.
 case "$AGENT" in
   claude|codex|grok|kimi|deepseek|antigravity) ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac
-MODEL_LABEL="$(bash "$REPO/scripts/model-of.sh" "$AGENT")"
+# shellcheck source=scripts/models.env
+. "$REPO/scripts/models.env"
+case "$AGENT" in
+  claude)      MODEL="$MODEL_CLAUDE" ;;
+  codex)       MODEL="$MODEL_CODEX" ;;
+  grok)        MODEL="$MODEL_GROK" ;;
+  kimi)        MODEL="$MODEL_KIMI" ;;
+  deepseek)    MODEL="$MODEL_DEEPSEEK" ;;
+  antigravity) MODEL="$MODEL_ANTIGRAVITY" ;;
+esac
+[ -n "$MODEL" ] || { echo "no model set for $AGENT in scripts/models.env" >&2; exit 1; }
+MODEL_LABEL="$MODEL"
 
 mkdir -p "$OUT_DIR"
 log(){ echo "[$(date +%H:%M:%S)] $AGENT: $*"; }
@@ -77,21 +89,22 @@ START=$(date +%s)
 cd "$OUT_DIR" || exit 1
 case "$AGENT" in
   claude)
-    $SANDBOX claude -p "$TASK" \
+    $SANDBOX claude -p "$TASK" --model "$MODEL" \
       --strict-mcp-config --mcp-config "$PW_CFG" \
       --permission-mode bypassPermissions --add-dir "$REPO" > run.log 2>&1 < /dev/null ;;
   codex)
     $SANDBOX codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox \
-      "$TASK" > run.log 2>&1 < /dev/null ;;
+      -m "$MODEL" "$TASK" > run.log 2>&1 < /dev/null ;;
   grok)
     # grok reads XAI_API_KEY from the environment; its stored session token stays denied.
-    $SANDBOX grok -p "$TASK" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
+    $SANDBOX grok -p "$TASK" -m "$MODEL" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
   kimi)
-    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" > run.log 2>&1 < /dev/null ;;
+    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" -m "$MODEL" > run.log 2>&1 < /dev/null ;;
   deepseek)
-    $SANDBOX reasonix -p "$TASK" > run.log 2>&1 < /dev/null ;;
+    $SANDBOX reasonix -p "$TASK" --model "$MODEL" -y > run.log 2>&1 < /dev/null ;;
   antigravity)
-    $SANDBOX "$HOME/.local/bin/agy" -p "$TASK" --dangerously-skip-permissions > run.log 2>&1 < /dev/null ;;
+    $SANDBOX "$HOME/.local/bin/agy" -p "$TASK" --model "$MODEL" --effort "$ANTIGRAVITY_EFFORT" \
+      --dangerously-skip-permissions > run.log 2>&1 < /dev/null ;;
 esac
 log "run done in $(( $(date +%s) - START ))s"
 
