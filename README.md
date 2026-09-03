@@ -75,7 +75,7 @@ What is code, and what is judgment.
 
 | Code, deterministic | The skill, judgment |
 | --- | --- |
-| crawl the app, record every element and XHR | read the source, work out the real API surface |
+| crawl the app, record its elements and XHRs | read the source, work out the real API surface |
 | join crawl and API surface into a coverage map | write the ranked test plan |
 | run the suite, parse the results | write the specs at the right layer |
 | render the report | triage every failure |
@@ -87,7 +87,7 @@ Deciding whether a failed test is a bug is nothing but judgment, so it is not.
 
 Put an LLM in the first job and it gets slow and unreliable. Put code in the second job and you get the noise most generated test suites are made of.
 
-Every artifact is validated against a Zod schema before the next stage reads it. A malformed plan fails immediately instead of quietly producing bad specs.
+The maps, the plan, the triage and the findings are validated against Zod schemas before the next stage reads them, so a malformed plan fails immediately instead of quietly producing bad specs. `results.json` is the exception: it comes straight from Playwright's own reporter.
 
 ## Why three views of the system
 

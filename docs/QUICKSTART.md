@@ -5,8 +5,10 @@ Point an agent at a running app, get back a bug report with screenshots and repr
 ## Requirements
 
 - Node 20+
-- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi and Reasonix all work — the skill is plain markdown.
+- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi and DeepSeek (the `reasonix` CLI) all work — the skill is plain markdown.
 - A Playwright MCP browser wired into it. Not optional; without a browser the agent guesses at the UI from source.
+- Docker with Compose v2, only if you use `npm run app:up` for Juice Shop.
+- This repo cloned with `npm install` run in it, if you want the `npm run *` helpers.
 
 ## 1. Wire the browser
 
