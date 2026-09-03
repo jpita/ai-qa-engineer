@@ -1,0 +1,158 @@
+{
+  "findings": [
+    {
+      "title": "Updating any profile setting without touching the password field silently wipes the account password",
+      "feature": "Settings (update profile)",
+      "endpoint": "PUT /api/user",
+      "severity": "high",
+      "reproduction": "1) Register/login as a user (e.g. qauser2 / Passw0rd!). 2) Go to Settings, change only the Bio field (leave Password blank), click Update Settings. 3) Log out. 4) Try to log in again with the original password.",
+      "calls": [
+        "PUT /api/user -> 200, request body captured from the real browser request: {\"user\":{\"bio\":\"QA tester bio update\",\"email\":\"qauser2@test.com\",\"image\":\"\",\"password\":\"\",\"username\":\"qauser2\"}} (the Settings form always sends password:\"\" when the field is left blank)",
+        "POST /api/users/login {\"user\":{\"email\":\"qauser2@test.com\",\"password\":\"Passw0rd!\"}} -> 422 {\"errors\":{\"body\":[\"Wrong email/password combination\"]}}",
+        "POST /api/users/login {\"user\":{\"email\":\"qauser2@test.com\",\"password\":\"\"}} -> 200, login succeeds with an empty password",
+        "Separately: PUT /api/user with the password key omitted entirely from the body (e.g. {\"user\":{\"bio\":\"x\"}}) -> 500 {\"errors\":{\"body\":[\"data and salt arguments required\"]}} (the update also fails outright when no password key is sent at all)"
+      ],
+      "screenshot": "screenshots/03_password_wiped_login_fails.png",
+      "observed": "After saving Settings with the password field left blank, the account's real password stops working (422 Wrong email/password combination) and an empty-string password now logs in (200). If the password key is left out of the request body altogether, the update crashes with a 500 instead.",
+      "expected": "Saving Settings without entering a new password should leave the existing password unchanged, and the update should succeed either way."
+    },
+    {
+      "title": "Publishing an article with no tags crashes the server and leaves a corrupted, author-less article that breaks the global article list for everyone",
+      "feature": "Create Article",
+      "endpoint": "POST /api/articles",
+      "severity": "high",
+      "reproduction": "1) Log in. 2) POST /api/articles with an article body that has no tagList key at all. 3) Reload the home page (Global Feed).",
+      "calls": [
+        "POST /api/articles {\"article\":{\"title\":\"No Tags Article\",\"description\":\"desc\",\"body\":\"body text\"}} -> 500 {\"errors\":{\"body\":[\"tagList is not iterable\"]}}",
+        "sqlite3 dev.sqlite \"SELECT id, slug, title, userId FROM Articles;\" -> row 1|no-tags-article|No Tags Article|<NULL userId> — the Article row was inserted before the crash and never got an author",
+        "GET /api/articles?limit=3&&offset=0 (no filters, the Global Feed's own request) -> 500 {\"errors\":{\"body\":[\"toAppend.hasFollower is not a function\"]}}"
+      ],
+      "screenshot": "screenshots/01_home_broken.png",
+      "observed": "The create-article request crashes with a 500, but the article row is still written to the database with no author. Every subsequent load of the Global Feed (the site's home page) then crashes with a 500 as soon as it reaches that row, for every visitor, until the bad row is removed from the database.",
+      "expected": "A request that fails validation should not create a partial database row, and one bad article should never take down the article listing for other users."
+    },
+    {
+      "title": "Usernames are not unique — two accounts can share the same username via signup or Settings",
+      "feature": "Registration / Settings",
+      "endpoint": "POST /api/users, PUT /api/user",
+      "severity": "high",
+      "reproduction": "1) Register user qauser1 (email a@test.com). 2) Register a second account with username qauser1 again but a different email. 3) Separately: log in as a different existing user (qauser2) and use Settings to change their username to qauser1.",
+      "calls": [
+        "POST /api/users {\"user\":{\"username\":\"qauser1\",\"email\":\"qauser1b@test.com\",\"password\":\"Passw0rd!\"}} -> 201 (succeeds even though username qauser1 already exists on another account)",
+        "PUT /api/user (as qauser2) {\"user\":{\"username\":\"qauser1\",\"password\":\"\"}} -> 200 (renames qauser2 to the already-taken username qauser1)",
+        "sqlite3 dev.sqlite \"SELECT id, username, email FROM Users;\" -> 1|qauser1|qauser1@test.com, 2|qauser1|qauser2@test.com, 3|qauser1|qauser1b@test.com — three different accounts, one username",
+        "GET /api/profiles/qauser1 -> always returns account id 1's profile; accounts 2 and 3 become unreachable at /profile/qauser1"
+      ],
+      "screenshot": "screenshots/05_duplicate_username_collision.png",
+      "observed": "Multiple accounts end up with the identical username. Profile lookups by username (GET /api/profiles/:username) always resolve to only the first matching account, so the other accounts' profile pages, and any article-author link pointing at them, silently show the wrong person's data.",
+      "expected": "Signup and Settings should reject a username that is already in use by another account, the same way email already does."
+    },
+    {
+      "title": "Renaming an article to match another article's title creates a duplicate slug — one article becomes unreachable",
+      "feature": "Edit Article",
+      "endpoint": "PUT /api/articles/:slug",
+      "severity": "high",
+      "reproduction": "1) Log in as the author of two different articles. 2) Edit one article's title so it slugifies to the same slug as the other existing article. 3) Reload the Global Feed.",
+      "calls": [
+        "PUT /api/articles/my-qa-test-article {\"article\":{\"title\":\"No Tags Typed Article\"}} -> 200 (title/slug changed with no collision check, unlike article creation which does check)",
+        "sqlite3 dev.sqlite \"SELECT id, slug, title FROM Articles;\" -> 2|no-tags-typed-article|No Tags Typed Article and 3|no-tags-typed-article|No Tags Typed Article — two different rows, identical slug",
+        "GET /api/articles/no-tags-typed-article -> 200, always returns the same one of the two articles; the other is never returned by this endpoint again"
+      ],
+      "screenshot": "screenshots/04_duplicate_slug_two_articles.png",
+      "observed": "The Global Feed lists two separate article cards with the identical title, both linking to the same URL. Only one of the two underlying articles can ever be opened, edited or deleted through that URL; the other is permanently stuck.",
+      "expected": "Renaming an article to a title that produces an existing slug should be rejected (as article creation already does for duplicate titles), or the slug should be made unique automatically."
+    },
+    {
+      "title": "Editing an article's tags has no effect",
+      "feature": "Edit Article",
+      "endpoint": "PUT /api/articles/:slug",
+      "severity": "medium",
+      "reproduction": "1) Log in as the article's author. 2) Open Edit Article. 3) Replace the tags field with a new value. 4) Click Update Article. 5) View the article.",
+      "calls": [
+        "PUT /api/articles/no-tags-typed-article {\"article\":{\"tagList\":[\"updated\",\"brandnew\"]}} -> 200, response tagList is still [\"testing\"] (the submitted tags are ignored)",
+        "GET /api/articles/no-tags-typed-article -> 200, tagList still [\"testing\"] after the edit"
+      ],
+      "screenshot": "screenshots/06_tag_edit_ignored.png",
+      "observed": "The Edit Article form's tags field pre-fills with the current tags, accepts a new value, and submits it, but the article's tags on screen never change and no error is shown.",
+      "expected": "Saving an edited article should update its tag list to what was entered in the form."
+    },
+    {
+      "title": "Tags of 2 characters or fewer are silently dropped when creating an article",
+      "feature": "Create Article",
+      "endpoint": "POST /api/articles",
+      "severity": "medium",
+      "reproduction": "1) Log in. 2) Create an article with tags \"qa, testing\" (one short tag, one normal tag). 3) View the article.",
+      "calls": [
+        "POST /api/articles {\"article\":{\"title\":\"My QA Test Article\",\"description\":\"desc\",\"body\":\"body text\",\"tagList\":[\"qa\",\"testing\"]}} -> 201, response echoes tagList:[\"qa\",\"testing\"]",
+        "GET /api/articles/my-qa-test-article -> 200, tagList is only [\"testing\"] — \"qa\" was never saved",
+        "sqlite3 dev.sqlite \"SELECT * FROM Tags;\" -> only \"testing\" exists; \"qa\" was never created"
+      ],
+      "screenshot": "screenshots/02_short_tag_dropped.png",
+      "observed": "The create-article response echoes back every tag that was typed, including the 2-character one, but only tags longer than 2 characters are actually persisted. The short tag disappears with no error or warning to the user.",
+      "expected": "Either the short tag should be saved like any other tag, or the user should be told it was rejected."
+    },
+    {
+      "title": "Filtering articles by a favorited username that doesn't exist crashes the server",
+      "feature": "Browse Articles (favorited-by filter)",
+      "endpoint": "GET /api/articles?favorited=<username>",
+      "severity": "medium",
+      "reproduction": "GET /api/articles?favorited=<a username that does not exist>",
+      "calls": [
+        "GET /api/articles?favorited=nosuchuserxyz999 -> 500 {\"errors\":{\"body\":[\"Cannot read properties of null (reading 'getFavorites')\"]}}"
+      ],
+      "observed": "The endpoint looks up the given username, gets no user back, and then calls a method on the null result, crashing with a 500.",
+      "expected": "A nonexistent favorited-by username should return a 404 or an empty article list, not a 500."
+    },
+    {
+      "title": "A non-numeric limit or offset on the article list crashes with a raw SQL error",
+      "feature": "Browse Articles (pagination)",
+      "endpoint": "GET /api/articles?limit=&offset=",
+      "severity": "medium",
+      "reproduction": "GET /api/articles?limit=abc&offset=0",
+      "calls": [
+        "GET /api/articles?limit=abc&offset=0 -> 500 {\"errors\":{\"body\":[\"SQLITE_ERROR: no such column: NaN\"]}}"
+      ],
+      "observed": "limit is parsed with parseInt without checking the result; a non-numeric value becomes NaN, which is then interpolated straight into the SQL LIMIT clause and breaks the query.",
+      "expected": "An invalid limit/offset value should be rejected with a 400/422, or fall back to the default, instead of producing a raw database error."
+    },
+    {
+      "title": "A malformed Authorization header crashes with a 500 instead of returning 401",
+      "feature": "Authentication (all protected routes)",
+      "endpoint": "Any route behind the auth middleware, e.g. GET /api/user",
+      "severity": "low",
+      "reproduction": "Send a protected request with an Authorization header that has no token part, e.g. \"Authorization: Token\" or \"Authorization: garbage\".",
+      "calls": [
+        "GET /api/user -H \"Authorization: Token\" -> 500 {\"errors\":{\"body\":[\"Token missing or malformed\"]}}",
+        "GET /api/user -H \"Authorization: garbage\" -> 500 {\"errors\":{\"body\":[\"Token missing or malformed\"]}}"
+      ],
+      "observed": "The middleware throws a plain SyntaxError for a malformed header, which the error handler doesn't recognize, so it falls through to the generic 500 branch.",
+      "expected": "A malformed or missing token should return 401 Unauthorized, matching the case where the Authorization header is absent entirely."
+    },
+    {
+      "title": "A user can follow themselves, which then shows their own articles in their own \"Your Feed\" tab",
+      "feature": "Follow / Personal Feed",
+      "endpoint": "POST /api/profiles/:username/follow",
+      "severity": "low",
+      "reproduction": "While logged in as qauser1, call POST /api/profiles/qauser1/follow (follow your own username), then load Your Feed.",
+      "calls": [
+        "POST /api/profiles/qauser1/follow (as qauser1) -> 200 {\"profile\":{\"username\":\"qauser1\",...,\"following\":true,\"followersCount\":1}}",
+        "GET /api/articles/feed?limit=10&offset=0 (as qauser1) -> 200, articlesCount:2, both of qauser1's own articles are returned"
+      ],
+      "observed": "The follow endpoint accepts a user following themselves with no check, and the personal Feed (meant to show only articles from people you follow) then includes the user's own articles.",
+      "expected": "A user should not be able to follow themselves; the Follow button is correctly hidden on your own profile in the UI, but the API itself does not enforce this."
+    },
+    {
+      "title": "Signup accepts a malformed email address and a whitespace-only username",
+      "feature": "Registration",
+      "endpoint": "POST /api/users",
+      "severity": "low",
+      "reproduction": "POST /api/users with email \"notanemail\" (no @ or domain); separately, POST /api/users with username \"   \" (three spaces).",
+      "calls": [
+        "POST /api/users {\"user\":{\"username\":\"bademail\",\"email\":\"notanemail\",\"password\":\"Passw0rd!\"}} -> 201, account created with an invalid email",
+        "POST /api/users {\"user\":{\"username\":\"   \",\"email\":\"wsuser@test.com\",\"password\":\"Passw0rd!\"}} -> 201, account created with a whitespace-only username"
+      ],
+      "observed": "The server only checks that username/email/password are non-empty; it does not validate email format or reject a username made only of whitespace.",
+      "expected": "Registration should validate that the email looks like an email and that the username has real, non-whitespace content. (Note: the Sign Up page's own HTML email field would normally block this in a browser; the gap is in the API itself.)"
+    }
+  ]
+}

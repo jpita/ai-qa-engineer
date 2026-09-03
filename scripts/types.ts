@@ -106,3 +106,27 @@ export interface CoverageGap {
   callerPages: string[];
   missingLayer: "api" | "ui";
 }
+
+// --- what SKILL.md emits (the agent-driven run) ---
+
+export const FindingSchema = z.object({
+  title: z.string(),
+  feature: z.string(),
+  endpoint: z.string(),
+  severity: z.enum(["high", "medium", "low"]),
+  reproduction: z.string(),
+  calls: z.array(z.string()).optional(),
+  screenshot: z.string().optional(),
+  observed: z.string(),
+  expected: z.string(),
+});
+export const FindingsSchema = z.object({ findings: z.array(FindingSchema) });
+export type Finding = z.infer<typeof FindingSchema>;
+
+export const RouteCoverageRowSchema = z.object({
+  route: z.string(),
+  feature: z.string(),
+  cases: z.array(z.string()),
+  result: z.string(),
+});
+export const RouteCoverageSchema = z.object({ coverage: z.array(RouteCoverageRowSchema) });

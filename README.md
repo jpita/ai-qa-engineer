@@ -142,19 +142,37 @@ So each failure gets a verdict, the evidence behind it, and a confidence level. 
 
 ## Output
 
+**The skill run** writes three things into the working directory:
+
 ```
-artifacts/<run>/
-  ui-map.json        what the crawl found
-  api-surface.json   what the source says exists
-  coverage.json      which screen calls which endpoint
-  test-plan.json     ranked cases, each with a layer
-  specs/             generated Playwright tests
-  results.json       what passed and what did not
-  triage.json        a verdict and evidence per failure
-  QA-REPORT.md       the thing a developer reads
+findings.json                        one entry per bug: steps, expected vs observed, calls, screenshot
+coverage.json                        one row per route, with the result or why it could not be tested
+bug-report-<timestamp>-<model>.html  self-contained, screenshots embedded, opens with no server
 ```
 
-[`examples/juice-shop/`](examples/juice-shop) holds a real run: the UI map, the API surface, the coverage map, the test plan, the triage and the generated specs.
+The filename carries the timestamp and model, so runs from different agents stay comparable.
+
+**The optional script pipeline** (`npm run crawl / coverage / run-specs / report`) writes the intermediate maps and a regression suite:
+
+```
+ui-map.json        what the crawl found
+api-surface.json   what the source says exists
+coverage.json      which screen calls which endpoint  (different shape: see below)
+test-plan.json     ranked cases, each with a layer
+specs/             generated Playwright tests
+results.json       what passed and what did not
+triage.json        a verdict and evidence per failure
+QA-REPORT.md       the thing a developer reads
+```
+
+The two `coverage.json` files are not the same shape. The skill's is one row per route; the pipeline's joins screens to endpoints. Validate with `npm run validate -- --schema route-coverage` and `--schema coverage` respectively.
+
+### Committed examples
+
+| | What it shows |
+| --- | --- |
+| [`examples/conduit/`](examples/conduit) | a skill run: 11 functional bugs, 21 routes, the bug report with embedded screenshots |
+| [`examples/juice-shop/`](examples/juice-shop) | a pipeline run: the maps, the plan, the triage and the generated specs. Covers 10 of 102 routes and predates the functional-bug rewrite, so several findings are access-control issues the skill now puts out of scope |
 
 ## Design decisions
 
