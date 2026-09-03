@@ -94,8 +94,13 @@ Read the frontend and backend and produce two maps:
 - **Route list** — every backend route the server registers. Read the entry file plus every handler. Enumerate ALL of them; the count is your denominator. A quick way to get the full count before reading handlers, adapt to the framework:
 
 ```bash
-grep -roE "app\.(get|post|put|delete|patch)\(\s*'[^']*'" <entry file> | sort -u | wc -l
+# rough count — catches app.get(...) and router.post(...) in .js and .ts
+grep -rhoE '\.(get|post|put|patch|delete|all)\([^,)]*' <dir> \
+  --include='*.js' --include='*.ts' | sort -u | wc -l
 ```
+
+This is a starting number, not the answer. It over-counts chained calls and misses
+routes built dynamically. The real denominator comes from reading the route files.
 
 Also crawl the running UI: every page, its controls, and the API calls each page fires (method, path, status). Most apps are single-page apps, so follow hash routes (`#/x`) and `routerLink` targets, log in and crawl again for pages behind auth.
 

@@ -128,8 +128,13 @@ The filename carries the timestamp and model so runs stay comparable.
 Coverage rows must equal the routes the server registers:
 
 ```bash
-grep -roE "app\.(get|post|put|delete|patch)\(\s*'[^']*'" <entry file> | sort -u | wc -l
+# rough count — catches app.get(...) and router.post(...) in .js and .ts
+grep -rhoE '\.(get|post|put|patch|delete|all)\([^,)]*' <dir> \
+  --include='*.js' --include='*.ts' | sort -u | wc -l
 ```
+
+This is a starting number, not the answer. It over-counts chained calls and misses
+routes built dynamically. The real denominator comes from reading the route files.
 
 21 rows against 40 routes means half the app was tested.
 
