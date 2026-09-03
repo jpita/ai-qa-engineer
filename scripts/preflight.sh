@@ -10,7 +10,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 TIMEOUT="${TIMEOUT:-420}"   # cold npx fetch + browser launch is slow the first time
 AGENTS=("${1:-all}")
-[ "${AGENTS[0]}" = "all" ] && AGENTS=(claude codex grok kimi deepseek)
+[ "${AGENTS[0]}" = "all" ] && AGENTS=(claude codex grok kimi deepseek antigravity)
 
 # The app must be up or every agent fails for the same uninteresting reason.
 code=$(curl -sS -o /dev/null -m5 -w '%{http_code}' "$BASE_URL/" 2>/dev/null)
@@ -44,6 +44,7 @@ for a in "${AGENTS[@]}"; do
     grok)     out=$(cap grok -p "$PROMPT" --always-approve --no-plan </dev/null) ;;
     kimi)     out=$(cap "$HOME/.kimi-code/bin/kimi" -p "$PROMPT" </dev/null) ;;
     deepseek) out=$(cap reasonix -p "$PROMPT" </dev/null) ;;
+    antigravity) out=$(cap "$HOME/.local/bin/agy" -p "$PROMPT" --dangerously-skip-permissions </dev/null) ;;
     *) echo "unknown agent"; fail=1; continue ;;
   esac
   if printf '%s' "$out" | grep -qF "$EXPECT"; then

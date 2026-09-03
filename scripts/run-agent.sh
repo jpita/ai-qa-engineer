@@ -12,7 +12,7 @@
 #   EXTRA_DENY   extra paths to block, colon-separated
 #   NO_SANDBOX=1 skip the sandbox (see docs/QUICKSTART.md)
 set -uo pipefail
-AGENT="${1:?usage: run-agent.sh <claude|codex|grok|kimi|deepseek>}"
+AGENT="${1:?usage: run-agent.sh <claude|codex|grok|kimi|deepseek|antigravity>}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 APP_NAME="${APP_NAME:-app}"
@@ -22,7 +22,7 @@ SKILL_FILE="${SKILL_FILE:-$REPO/SKILL.md}"
 # Each CLI uses the model in its OWN config. Set the tier there, once, not here —
 # a name hardcoded in this script goes stale and mislabels every report it names.
 case "$AGENT" in
-  claude|codex|grok|kimi|deepseek) ;;
+  claude|codex|grok|kimi|deepseek|antigravity) ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac
 MODEL_LABEL="$(bash "$REPO/scripts/model-of.sh" "$AGENT")"
@@ -90,6 +90,8 @@ case "$AGENT" in
     $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" > run.log 2>&1 < /dev/null ;;
   deepseek)
     $SANDBOX reasonix -p "$TASK" > run.log 2>&1 < /dev/null ;;
+  antigravity)
+    $SANDBOX "$HOME/.local/bin/agy" -p "$TASK" --dangerously-skip-permissions > run.log 2>&1 < /dev/null ;;
 esac
 log "run done in $(( $(date +%s) - START ))s"
 

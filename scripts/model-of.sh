@@ -19,5 +19,8 @@ case "$1" in
   deepseek)
     m=$(sed -n 's/^default_model[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.reasonix/config.toml" 2>/dev/null | head -1)
     echo "${m:-default}" ;;
+  antigravity)
+    m=$(sed -n 's/.*"model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.cache/antigravity/config.json" 2>/dev/null | head -1)
+    echo "${m:-default}" ;;
   *) echo "unknown" ;;
 esac

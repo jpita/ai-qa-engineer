@@ -1,7 +1,7 @@
 #!/bin/bash
 # make-sandbox.sh — generate a macOS sandbox profile for one AI coding agent.
 #
-#   usage: make-sandbox.sh <claude|codex|grok|kimi|deepseek|none> > agent.sb
+#   usage: make-sandbox.sh <claude|codex|grok|kimi|deepseek|antigravity|none> > agent.sb
 #          sandbox-exec -f agent.sb <the agent command>
 #
 # Policy: allow everything by default, then deny every credential store on the
@@ -49,6 +49,7 @@ cat <<EOF
   (subpath "$H/.kimi-code")
   (subpath "$H/.reasonix")
   (subpath "$H/.gemini")
+  (subpath "$H/.cache/antigravity")
   (literal "$H/.claude.json")
   ;; any .env anywhere under \$HOME
   (regex #"^$H/.*/\.env\$")
@@ -85,6 +86,10 @@ case "$AGENT" in
     echo ";; ---- 2. reasonix reads its key from its own .env, not the environment ----"
     echo "(allow file-read* file-write* (subpath \"$H/.reasonix\"))"
     ;;
+  antigravity)
+    echo ";; ---- 2. antigravity's own cache + keychain (its session lives there) ----"
+    echo "(allow file-read* file-write* process-exec (subpath \"$H/.cache/antigravity\") (subpath \"$H/.local/bin\"))"
+    echo "(allow file-read* (subpath \"$H/Library/Keychains\"))" ;;
   none) echo ";; ---- 2. no agent credential re-allowed ----" ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac

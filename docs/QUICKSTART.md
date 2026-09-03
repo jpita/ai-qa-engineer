@@ -5,7 +5,7 @@ Point an agent at a running app, get back a bug report with screenshots and repr
 ## Requirements
 
 - Node 20+
-- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi and DeepSeek (the `reasonix` CLI) all work — the skill is plain markdown.
+- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi, DeepSeek (the `reasonix` CLI) and Antigravity (`agy`) all work — the skill is plain markdown.
 - A Playwright MCP browser wired into it. Not optional; without a browser the agent guesses at the UI from source.
 - Docker with Compose v2, only if you use `npm run app:up` for Juice Shop.
 - This repo cloned with `npm install` run in it, if you want the `npm run *` helpers.
@@ -16,6 +16,7 @@ Point an agent at a running app, get back a bug report with screenshots and repr
 claude   mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
 codex    mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
 reasonix mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
+agy      mcp add playwright npx -y @playwright/mcp@latest --headless --isolated
 ```
 
 Grok and Kimi read JSON instead (`~/.kimi-code/mcp.json`):
@@ -112,6 +113,7 @@ If the app proxies its API through the frontend port (Conduit does: Vite forward
 | Grok | `grok -p "$TASK" -m grok-4.3 --always-approve --no-plan` |
 | Kimi | `~/.kimi-code/bin/kimi -p "$TASK" -m kimi-k2.7-code` |
 | DeepSeek | `reasonix -p "$TASK"` |
+| Antigravity | `agy -p "$TASK" --dangerously-skip-permissions` |
 
 One-shot is the intended mode.
 
