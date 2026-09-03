@@ -6,13 +6,6 @@ Point a coding agent at a web app and it will:
 - exercise each one against the running app
 - report only the bugs it reproduced, with screenshots, repro steps and the API calls
 
-Tell it where the app is and where the code is. Either can be local or remote.
-
-```
-/ai-qa-engineer --url http://localhost:3000 --source ~/code/juice-shop
-/ai-qa-engineer --source https://github.com/juice-shop/juice-shop     # clones it, boots it
-```
-
 ## Install
 
 ```bash
@@ -31,6 +24,28 @@ ln -s "$PWD/SKILL.md" ~/.claude/skills/ai-qa-engineer/SKILL.md
 
 For any other agent CLI, inline [SKILL.md](SKILL.md) into the prompt. See the [Quickstart](docs/QUICKSTART.md).
 
+## Target apps
+
+Two that this has been run against:
+
+| Target | Command | Notes |
+| --- | --- | --- |
+| OWASP Juice Shop | `npm run app:up` | Docker, pinned to v20.2.0, serves on `:3000` |
+| Conduit (RealWorld) | see [Quickstart](docs/QUICKSTART.md#2-start-a-target) | Node + SQLite, no Docker |
+
+## Usage
+
+Tell it where the app is and where the code is. Either can be local or remote.
+
+```
+/ai-qa-engineer --url http://localhost:3000 --source ~/code/juice-shop
+/ai-qa-engineer --source https://github.com/juice-shop/juice-shop     # clones it, boots it
+```
+
+The judgment stages run on your existing agent session. The scripts run locally.
+Claude Code needs no API key; Grok reads `XAI_API_KEY`, and Kimi and DeepSeek read
+keys from their own config files.
+
 ## Docs
 
 | | |
@@ -38,7 +53,9 @@ For any other agent CLI, inline [SKILL.md](SKILL.md) into the prompt. See the [Q
 | [Quickstart](docs/QUICKSTART.md) | wire a browser, boot a target app, run it |
 | [Sandboxing agents](docs/SANDBOX-MACOS.md) | stop an agent reading your credentials (macOS) |
 
-[SKILL.md](SKILL.md) is plain markdown. Inline it into any agent's prompt.
+---
+
+The rest is how it works and why.
 
 ## The split
 
@@ -155,17 +172,6 @@ If it cannot tell whether a route validates a field, it says so. It does not inv
 
 **The report is the product.**
 Everything else is scaffolding around one file a developer can act on: steps, expected result, evidence, honest confidence, and what was not covered.
-
-## Target apps
-
-Two that this has been run against:
-
-| Target | Command | Notes |
-| --- | --- | --- |
-| OWASP Juice Shop | `npm run app:up` | Docker, pinned to v20.2.0, serves on `:3000` |
-| Conduit (RealWorld) | see [Quickstart](docs/QUICKSTART.md#2-start-a-target) | Node + SQLite, no Docker |
-
-Then run the skill from your agent CLI. No API key: the judgment stages run on your existing session, the scripts run locally.
 
 ## License
 
