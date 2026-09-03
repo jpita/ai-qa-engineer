@@ -13,6 +13,24 @@ Tell it where the app is and where the code is. Either can be local or remote.
 /ai-qa-engineer --source https://github.com/juice-shop/juice-shop     # clones it, boots it
 ```
 
+## Install
+
+```bash
+git clone https://github.com/jpita/ai-qa-engineer.git
+cd ai-qa-engineer
+npm install
+npx playwright install chromium
+```
+
+For Claude Code, link it in so `/ai-qa-engineer` works:
+
+```bash
+mkdir -p ~/.claude/skills/ai-qa-engineer
+ln -s "$PWD/SKILL.md" ~/.claude/skills/ai-qa-engineer/SKILL.md
+```
+
+For any other agent CLI, inline [SKILL.md](SKILL.md) into the prompt. See the [Quickstart](docs/QUICKSTART.md).
+
 ## Docs
 
 | | |
@@ -138,14 +156,9 @@ If it cannot tell whether a route validates a field, it says so. It does not inv
 **The report is the product.**
 Everything else is scaffolding around one file a developer can act on: steps, expected result, evidence, honest confidence, and what was not covered.
 
-## Setup
+## Target apps
 
-```bash
-npm install
-npx playwright install chromium
-```
-
-Then start a target app. Two that this has been run against:
+Two that this has been run against:
 
 | Target | Command | Notes |
 | --- | --- | --- |

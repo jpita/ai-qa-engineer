@@ -82,7 +82,7 @@ The methodology is what matters, not the exact tool:
 
 - **API layer** — any HTTP client (`curl`, `fetch`).
 - **UI layer** — a real browser via Playwright MCP (required, see above).
-- **The `npm run *` helpers live in `~/code/ai-qa-engineer`** (`crawl`, `coverage`, `run-specs`, `report`, `validate`) and are available to any agent: `cd ~/code/ai-qa-engineer && npm run crawl -- --url <target>`. They are an OPTIONAL accelerator for the mechanical steps. If you prefer, do the same work by hand with HTTP and the browser. The output is identical.
+- **The `npm run *` helpers** (`crawl`, `coverage`, `run-specs`, `report`, `validate`, `bug-report`) live in this skill's own repo. `cd` into it and run them: `npm run crawl -- --url <target>`. They are an OPTIONAL accelerator for the mechanical steps. If you prefer, do the same work by hand with HTTP and the browser. The output is identical.
 
 ---
 
@@ -153,10 +153,10 @@ Turn `findings.json` into ONE self-contained HTML file: a card per bug, each wit
 The filename MUST carry the date, timestamp and the model that ran it, so reports can be compared later:
 `bug-report-<YYYY-MM-DDTHH-MM-SS>-<model>.html`
 
-You build this yourself. The generator is provided:
+You build this yourself. The generator is provided; run it from the skill's repo:
 
 ```
-cd ~/code/ai-qa-engineer && npm run bug-report -- \
+npm run bug-report -- \
   --findings <path>/findings.json --model "<the model label you were told you are running as>" \
   --app "<app name>" --url "<target url>" --out <path>
 ```

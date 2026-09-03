@@ -80,7 +80,7 @@ Inline the skill. A path is a file the agent may not open; inlining guarantees e
 
 ```bash
 mkdir -p ~/qa-run && cd ~/qa-run
-SKILL="$(cat ~/code/ai-qa-engineer/SKILL.md)"
+SKILL="$(cat /path/to/ai-qa-engineer/SKILL.md)"   # wherever you cloned it
 TASK="Follow the QA skill below EXACTLY. Target http://localhost:3000
 Use HTTP for the API layer and the Playwright MCP browser for the UI layer.
 You are running as model: claude-sonnet-5
