@@ -19,15 +19,13 @@ APP_NAME="${APP_NAME:-app}"
 OUT_DIR="${OUT_DIR:-$REPO/runs/$AGENT}"
 SKILL_FILE="${SKILL_FILE:-$REPO/SKILL.md}"
 
-# Model per agent. Keep these at a comparable tier or the run measures the model, not the agent.
+# Each CLI uses the model in its OWN config. Set the tier there, once, not here —
+# a name hardcoded in this script goes stale and mislabels every report it names.
 case "$AGENT" in
-  claude)   MODEL_LABEL="claude-sonnet-5" ;;
-  codex)    MODEL_LABEL="gpt-5.6-terra" ;;
-  grok)     MODEL_LABEL="grok-4.3" ;;
-  kimi)     MODEL_LABEL="kimi-k2.7-code" ;;
-  deepseek) MODEL_LABEL="deepseek-v4-flash" ;;
+  claude|codex|grok|kimi|deepseek) ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac
+MODEL_LABEL="$(bash "$REPO/scripts/model-of.sh" "$AGENT")"
 
 mkdir -p "$OUT_DIR"
 log(){ echo "[$(date +%H:%M:%S)] $AGENT: $*"; }
@@ -79,17 +77,17 @@ START=$(date +%s)
 cd "$OUT_DIR" || exit 1
 case "$AGENT" in
   claude)
-    $SANDBOX claude -p "$TASK" --model sonnet --effort xhigh \
+    $SANDBOX claude -p "$TASK" \
       --strict-mcp-config --mcp-config "$PW_CFG" \
       --permission-mode bypassPermissions --add-dir "$REPO" > run.log 2>&1 < /dev/null ;;
   codex)
     $SANDBOX codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox \
-      -m gpt-5.6-terra -c model_reasoning_effort="high" "$TASK" > run.log 2>&1 < /dev/null ;;
+      "$TASK" > run.log 2>&1 < /dev/null ;;
   grok)
     # grok reads XAI_API_KEY from the environment; its stored session token stays denied.
-    $SANDBOX grok -p "$TASK" -m grok-4.3 --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
+    $SANDBOX grok -p "$TASK" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
   kimi)
-    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" -m kimi-k2.7-code > run.log 2>&1 < /dev/null ;;
+    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" > run.log 2>&1 < /dev/null ;;
   deepseek)
     $SANDBOX reasonix -p "$TASK" > run.log 2>&1 < /dev/null ;;
 esac
