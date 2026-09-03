@@ -6,6 +6,9 @@ Point a coding agent at a web app and it will:
 - exercise each one against the running app
 - report only the bugs it reproduced, with screenshots, repro steps and the API calls
 
+You get one self-contained HTML page: a summary table, then a collapsible card per bug.
+[See a real one](examples/conduit) — 11 functional bugs found in the RealWorld demo app.
+
 ## Install
 
 ```bash
@@ -38,9 +41,18 @@ Two that this has been run against:
 Tell it where the app is and where the code is. Either can be local or remote.
 
 ```
-/ai-qa-engineer --url http://localhost:3000 --source ~/code/juice-shop
-/ai-qa-engineer --source https://github.com/juice-shop/juice-shop     # clones it, boots it
+# Juice Shop via `npm run app:up` — the app is in Docker, so point at the source repo
+/ai-qa-engineer --url http://localhost:3000 --source https://github.com/juice-shop/juice-shop
+
+# an app you cloned and started yourself
+/ai-qa-engineer --url http://localhost:3000 --source ./conduit
+
+# neither running nor cloned — it clones the repo, boots the app, then tests it
+/ai-qa-engineer --source https://github.com/juice-shop/juice-shop
 ```
+
+The source matters. Without it the agent cannot enumerate the routes, so it has no
+denominator for coverage and cannot tell you what it missed.
 
 The judgment stages run on your existing agent session. The scripts run locally.
 Claude Code needs no API key; Grok reads `XAI_API_KEY`, and Kimi and DeepSeek read

@@ -27,7 +27,7 @@ Confirm with `claude mcp list` before running anything.
 
 ## 2. Start a target
 
-Two apps this has been run against. Pick either — the skill is the same.
+Two apps this has been run against. Pick either — the skill is the same. Note where you cloned it; step 3 needs the source path.
 
 | | Stack | Why |
 | --- | --- | --- |
@@ -81,7 +81,13 @@ Inline the skill. A path is a file the agent may not open; inlining guarantees e
 ```bash
 mkdir -p ~/qa-run && cd ~/qa-run
 SKILL="$(cat /path/to/ai-qa-engineer/SKILL.md)"   # wherever you cloned it
-TASK="Follow the QA skill below EXACTLY. Target http://localhost:3000
+APP=http://localhost:3000
+SRC=/path/to/the/app/source          # the checkout you are running, or a git URL to clone
+
+TASK="Follow the QA skill below EXACTLY.
+The running app is at: $APP
+The app source is at: $SRC
+Read the source to enumerate every backend route. That count is your coverage denominator.
 Use HTTP for the API layer and the Playwright MCP browser for the UI layer.
 You are running as model: claude-sonnet-5
 Write findings.json and coverage.json here, screenshot each bug, then build the Stage 5 report.
@@ -91,6 +97,12 @@ $SKILL"
 
 claude -p "$TASK" --model sonnet --effort xhigh --permission-mode bypassPermissions
 ```
+
+`--effort xhigh` buys more reasoning per step. A thorough run is long: it reads the
+whole codebase and exercises every route, so expect it to keep working for a while.
+
+If the app proxies its API through the frontend port (Conduit does: Vite forwards
+`/api` to `:3001`), one URL is enough. If not, tell the agent both.
 
 | CLI | Command |
 | --- | --- |
