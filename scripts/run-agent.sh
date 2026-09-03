@@ -96,8 +96,12 @@ case "$AGENT" in
     $SANDBOX codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox \
       -m "$MODEL" "$TASK" > run.log 2>&1 < /dev/null ;;
   grok)
-    # grok reads XAI_API_KEY from the environment; its stored session token stays denied.
-    $SANDBOX grok -p "$TASK" -m "$MODEL" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
+    # XAI_API_KEY must be exported before calling this script -- grok's session login
+    # only exposes grok-4.6, so a custom [model.*] entry in ~/.grok/config.toml routes
+    # other IDs straight to api.x.ai. Without the key it silently falls back to the
+    # session credential, which fails as "402 spending-limit" if that has no balance.
+    [ -n "${XAI_API_KEY:-}" ] || { echo "XAI_API_KEY is not set -- export it before running grok" >&2; exit 1; }
+    $SANDBOX env XAI_API_KEY="$XAI_API_KEY" grok -p "$TASK" -m "$MODEL" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
   kimi)
     $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" -m "$MODEL" > run.log 2>&1 < /dev/null ;;
   deepseek)

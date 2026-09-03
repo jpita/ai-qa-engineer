@@ -56,7 +56,7 @@ for a in "${AGENTS[@]}"; do
                 -c 'mcp_servers.playwright.command="npx"' \
                 -c 'mcp_servers.playwright.args=["-y","@playwright/mcp@latest","--headless","--isolated","--no-sandbox"]' \
                 -m "$MODEL" "$PROMPT" </dev/null) ;;
-    grok)     out=$(cap grok -p "$PROMPT" -m "$MODEL" --always-approve --no-plan </dev/null) ;;
+    grok)     out=$(cap env XAI_API_KEY="${XAI_API_KEY:-}" grok -p "$PROMPT" -m "$MODEL" --always-approve --no-plan </dev/null) ;;
     kimi)     out=$(cap "$HOME/.kimi-code/bin/kimi" -p "$PROMPT" -m "$MODEL" </dev/null) ;;
     deepseek) out=$(cap reasonix -p "$PROMPT" --model "$MODEL" -y </dev/null) ;;
     antigravity) out=$(cap "$HOME/.local/bin/agy" -p "$PROMPT" --model "$MODEL" \
