@@ -1,8 +1,8 @@
 {
   "name": "ai-qa-engineer",
   "version": "0.1.0",
-  "private": false,
-  "description": "A Claude Code skill that inspects a web app and its source, plans and writes tests at the right layer, runs them, and triages the failures",
+  "private": true,
+  "description": "A coding agent skill that inspects a web app and its source, plans and writes tests at the right layer, runs them, and triages the failures",
   "type": "module",
   "scripts": {
     "crawl": "tsx scripts/crawl.ts",
@@ -21,14 +21,31 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@playwright/test": "^1.62.1",
     "playwright": "^1.62.1",
     "zod": "^4.5.4"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
     "@types/node": "^26.4.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpita/ai-qa-engineer.git"
+  },
+  "homepage": "https://github.com/jpita/ai-qa-engineer#readme",
+  "bugs": {
+    "url": "https://github.com/jpita/ai-qa-engineer/issues"
+  },
+  "author": "Gabriel Pita",
+  "keywords": [
+    "qa",
+    "testing",
+    "playwright",
+    "ai-agent",
+    "claude-code",
+    "skill"
+  ]
 }

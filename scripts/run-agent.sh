@@ -12,22 +12,32 @@
 #   EXTRA_DENY   extra paths to block, colon-separated
 #   NO_SANDBOX=1 skip the sandbox (see docs/QUICKSTART.md)
 set -uo pipefail
-AGENT="${1:?usage: run-agent.sh <claude|codex|grok|kimi|deepseek>}"
+AGENT="${1:?usage: run-agent.sh <claude|codex|grok|kimi|deepseek|antigravity>}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 APP_NAME="${APP_NAME:-app}"
 OUT_DIR="${OUT_DIR:-$REPO/runs/$AGENT}"
 SKILL_FILE="${SKILL_FILE:-$REPO/SKILL.md}"
 
-# Model per agent. Keep these at a comparable tier or the run measures the model, not the agent.
+# The model pin lives in one file: scripts/models.env. It is sent explicitly with
+# -m/--model to every CLI call below. Never rely on a CLI's own default — it can
+# change between two runs with no warning, which breaks a comparison silently.
 case "$AGENT" in
-  claude)   MODEL_LABEL="claude-sonnet-5" ;;
-  codex)    MODEL_LABEL="gpt-5.6-terra" ;;
-  grok)     MODEL_LABEL="grok-4.3" ;;
-  kimi)     MODEL_LABEL="kimi-k2.7-code" ;;
-  deepseek) MODEL_LABEL="deepseek-v4-flash" ;;
+  claude|codex|grok|kimi|deepseek|antigravity) ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac
+# shellcheck source=scripts/models.env
+. "$REPO/scripts/models.env"
+case "$AGENT" in
+  claude)      MODEL="$MODEL_CLAUDE" ;;
+  codex)       MODEL="$MODEL_CODEX" ;;
+  grok)        MODEL="$MODEL_GROK" ;;
+  kimi)        MODEL="$MODEL_KIMI" ;;
+  deepseek)    MODEL="$MODEL_DEEPSEEK" ;;
+  antigravity) MODEL="$MODEL_ANTIGRAVITY" ;;
+esac
+[ -n "$MODEL" ] || { echo "no model set for $AGENT in scripts/models.env" >&2; exit 1; }
+MODEL_LABEL="$MODEL"
 
 mkdir -p "$OUT_DIR"
 log(){ echo "[$(date +%H:%M:%S)] $AGENT: $*"; }
@@ -51,7 +61,9 @@ When findings.json, coverage.json and the bug-report HTML are written, stop.
 ===== SKILL =====
 $SKILL"
 
-# One identical browser tool for every agent, or the run measures the tooling.
+# Every agent must have the SAME browser tool or the run measures the tooling.
+# Only claude takes an MCP config per invocation. codex, grok, kimi and deepseek read
+# their own config files, so wire those up first (see docs/QUICKSTART.md step 1).
 # --no-sandbox is required: Chromium's own sandbox cannot nest inside sandbox-exec.
 PW_CFG="$REPO/scripts/pw-mcp.json"
 cat > "$PW_CFG" <<'JSON'
@@ -77,19 +89,26 @@ START=$(date +%s)
 cd "$OUT_DIR" || exit 1
 case "$AGENT" in
   claude)
-    $SANDBOX claude -p "$TASK" --model sonnet --effort xhigh \
+    $SANDBOX claude -p "$TASK" --model "$MODEL" \
       --strict-mcp-config --mcp-config "$PW_CFG" \
       --permission-mode bypassPermissions --add-dir "$REPO" > run.log 2>&1 < /dev/null ;;
   codex)
     $SANDBOX codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox \
-      -m gpt-5.6-terra -c model_reasoning_effort="high" "$TASK" > run.log 2>&1 < /dev/null ;;
+      -m "$MODEL" "$TASK" > run.log 2>&1 < /dev/null ;;
   grok)
-    # grok reads XAI_API_KEY from the environment; its stored session token stays denied.
-    $SANDBOX grok -p "$TASK" -m grok-4.3 --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
+    # XAI_API_KEY must be exported before calling this script -- grok's session login
+    # only exposes grok-4.6, so a custom [model.*] entry in ~/.grok/config.toml routes
+    # other IDs straight to api.x.ai. Without the key it silently falls back to the
+    # session credential, which fails as "402 spending-limit" if that has no balance.
+    [ -n "${XAI_API_KEY:-}" ] || { echo "XAI_API_KEY is not set -- export it before running grok" >&2; exit 1; }
+    $SANDBOX env XAI_API_KEY="$XAI_API_KEY" grok -p "$TASK" -m "$MODEL" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
   kimi)
-    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" -m kimi-k2.7-code > run.log 2>&1 < /dev/null ;;
+    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" -m "$MODEL" > run.log 2>&1 < /dev/null ;;
   deepseek)
-    $SANDBOX reasonix -p "$TASK" > run.log 2>&1 < /dev/null ;;
+    $SANDBOX reasonix -p "$TASK" --model "$MODEL" -y > run.log 2>&1 < /dev/null ;;
+  antigravity)
+    $SANDBOX "$HOME/.local/bin/agy" -p "$TASK" --model "$MODEL" --effort "$ANTIGRAVITY_EFFORT" \
+      --dangerously-skip-permissions > run.log 2>&1 < /dev/null ;;
 esac
 log "run done in $(( $(date +%s) - START ))s"
 

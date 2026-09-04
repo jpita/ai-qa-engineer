@@ -5,8 +5,10 @@ Point an agent at a running app, get back a bug report with screenshots and repr
 ## Requirements
 
 - Node 20+
-- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi and Reasonix all work — the skill is plain markdown.
+- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi, DeepSeek (the `reasonix` CLI) and Antigravity (`agy`) all work — the skill is plain markdown.
 - A Playwright MCP browser wired into it. Not optional; without a browser the agent guesses at the UI from source.
+- Docker with Compose v2, only if you use `npm run app:up` for Juice Shop.
+- This repo cloned with `npm install` run in it, if you want the `npm run *` helpers.
 
 ## 1. Wire the browser
 
@@ -14,6 +16,7 @@ Point an agent at a running app, get back a bug report with screenshots and repr
 claude   mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
 codex    mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
 reasonix mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
+agy      mcp add playwright npx -y @playwright/mcp@latest --headless --isolated
 ```
 
 Grok and Kimi read JSON instead (`~/.kimi-code/mcp.json`):
@@ -27,7 +30,7 @@ Confirm with `claude mcp list` before running anything.
 
 ## 2. Start a target
 
-Two apps this has been run against. Pick either — the skill is the same.
+Two apps this has been run against. Pick either — the skill is the same. Note where you cloned it; step 3 needs the source path.
 
 | | Stack | Why |
 | --- | --- | --- |
@@ -80,8 +83,14 @@ Inline the skill. A path is a file the agent may not open; inlining guarantees e
 
 ```bash
 mkdir -p ~/qa-run && cd ~/qa-run
-SKILL="$(cat ~/code/ai-qa-engineer/SKILL.md)"
-TASK="Follow the QA skill below EXACTLY. Target http://localhost:3000
+SKILL="$(cat /path/to/ai-qa-engineer/SKILL.md)"   # wherever you cloned it
+APP=http://localhost:3000
+SRC=/path/to/the/app/source          # the checkout you are running, or a git URL to clone
+
+TASK="Follow the QA skill below EXACTLY.
+The running app is at: $APP
+The app source is at: $SRC
+Read the source to enumerate every backend route. That count is your coverage denominator.
 Use HTTP for the API layer and the Playwright MCP browser for the UI layer.
 You are running as model: claude-sonnet-5
 Write findings.json and coverage.json here, screenshot each bug, then build the Stage 5 report.
@@ -92,12 +101,19 @@ $SKILL"
 claude -p "$TASK" --model sonnet --effort xhigh --permission-mode bypassPermissions
 ```
 
+`--effort xhigh` buys more reasoning per step. A thorough run is long: it reads the
+whole codebase and exercises every route, so expect it to keep working for a while.
+
+If the app proxies its API through the frontend port (Conduit does: Vite forwards
+`/api` to `:3001`), one URL is enough. If not, tell the agent both.
+
 | CLI | Command |
 | --- | --- |
 | Codex | `codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-terra -c model_reasoning_effort=high "$TASK"` |
 | Grok | `grok -p "$TASK" -m grok-4.3 --always-approve --no-plan` |
 | Kimi | `~/.kimi-code/bin/kimi -p "$TASK" -m kimi-k2.7-code` |
 | DeepSeek | `reasonix -p "$TASK"` |
+| Antigravity | `agy -p "$TASK" --dangerously-skip-permissions` |
 
 One-shot is the intended mode.
 
@@ -116,8 +132,13 @@ The filename carries the timestamp and model so runs stay comparable.
 Coverage rows must equal the routes the server registers:
 
 ```bash
-grep -roE "app\.(get|post|put|delete|patch)\(\s*'[^']*'" <entry file> | sort -u | wc -l
+# rough count — catches app.get(...) and router.post(...) in .js and .ts
+grep -rhoE '\.(get|post|put|patch|delete|all)\([^,)]*' <dir> \
+  --include='*.js' --include='*.ts' | sort -u | wc -l
 ```
+
+This is a starting number, not the answer. It over-counts chained calls and misses
+routes built dynamically. The real denominator comes from reading the route files.
 
 21 rows against 40 routes means half the app was tested.
 
@@ -130,6 +151,30 @@ grep -roE "app\.(get|post|put|delete|patch)\(\s*'[^']*'" <entry file> | sort -u 
 | MCP path-length error | `export PWTEST_SOCKETS_DIR=/tmp/pw` (macOS 104-char socket limit) |
 | Grok exits clean, no output | add `--always-approve --no-plan` |
 | Empty report | curl the URL yourself; the app was probably down |
+
+## Comparing agents
+
+For a run across several agents, `scripts/run-agent.sh` does what step 3 does by
+hand, plus a per-agent sandbox (see [SANDBOX-MACOS.md](SANDBOX-MACOS.md)).
+
+```bash
+BASE_URL=http://localhost:3000 APP_NAME=conduit ./scripts/run-agent.sh claude
+```
+
+Every model is pinned in one file, `scripts/models.env`, and sent explicitly with
+`-m`/`--model` to each CLI. Never rely on a CLI's own default: it can change between
+two runs with no warning, which breaks a comparison silently and mislabels every
+report with the wrong model. Edit `scripts/models.env` to set the tier.
+
+Before a comparison run, prove every agent can actually reach its model and drive
+the browser:
+
+```bash
+BASE_URL=http://localhost:3000 ./scripts/preflight.sh all
+```
+
+It asks each agent for the page `<title>`, which only comes back right with a
+working model and a working browser. Run it after any change to `models.env`.
 
 ## Warning
 

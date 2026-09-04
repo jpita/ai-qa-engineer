@@ -1,0 +1,130 @@
+{
+  "coverage": [
+    {
+      "route": "GET /",
+      "feature": "API root status (dev only)",
+      "cases": ["happy"],
+      "result": "ok"
+    },
+    {
+      "route": "POST /api/users",
+      "feature": "Register",
+      "cases": ["happy", "negative", "edge"],
+      "result": "bug (see findings: duplicate usernames allowed; malformed email / whitespace username accepted)"
+    },
+    {
+      "route": "POST /api/users/login",
+      "feature": "Login",
+      "cases": ["happy", "negative"],
+      "result": "ok"
+    },
+    {
+      "route": "GET /api/user",
+      "feature": "Current user",
+      "cases": ["happy", "negative", "edge"],
+      "result": "bug (see findings: malformed Authorization header returns 500 instead of 401, via the shared auth middleware)"
+    },
+    {
+      "route": "PUT /api/user",
+      "feature": "Update Settings",
+      "cases": ["happy", "negative", "edge", "persistence"],
+      "result": "bug (see findings: password silently wiped / crashes without password key; duplicate username allowed)"
+    },
+    {
+      "route": "GET /api/articles",
+      "feature": "Browse Articles (Global Feed / by author / by tag / favorited-by)",
+      "cases": ["happy", "negative", "edge", "persistence"],
+      "result": "bug (see findings: favorited=nonexistent user crashes; non-numeric limit crashes; also affected by the orphan-article corruption from the create-article bug)"
+    },
+    {
+      "route": "POST /api/articles",
+      "feature": "Create Article",
+      "cases": ["happy", "negative", "edge"],
+      "result": "bug (see findings: missing tagList crashes and corrupts DB; short tags silently dropped)"
+    },
+    {
+      "route": "GET /api/articles/feed",
+      "feature": "Your Feed (followed authors)",
+      "cases": ["happy", "negative"],
+      "result": "bug (see findings: self-follow pollutes own feed)"
+    },
+    {
+      "route": "GET /api/articles/:slug",
+      "feature": "View single article",
+      "cases": ["happy", "negative"],
+      "result": "ok"
+    },
+    {
+      "route": "PUT /api/articles/:slug",
+      "feature": "Edit Article",
+      "cases": ["happy", "negative", "edge", "persistence"],
+      "result": "bug (see findings: no slug/title collision check on update; tagList changes ignored)"
+    },
+    {
+      "route": "DELETE /api/articles/:slug",
+      "feature": "Delete Article",
+      "cases": ["happy", "negative"],
+      "result": "ok"
+    },
+    {
+      "route": "POST /api/articles/:slug/favorite",
+      "feature": "Favorite Article",
+      "cases": ["happy", "negative", "edge"],
+      "result": "ok"
+    },
+    {
+      "route": "DELETE /api/articles/:slug/favorite",
+      "feature": "Unfavorite Article",
+      "cases": ["happy", "negative"],
+      "result": "ok"
+    },
+    {
+      "route": "GET /api/articles/:slug/comments",
+      "feature": "List Comments",
+      "cases": ["happy"],
+      "result": "ok"
+    },
+    {
+      "route": "POST /api/articles/:slug/comments",
+      "feature": "Create Comment",
+      "cases": ["happy", "negative"],
+      "result": "ok"
+    },
+    {
+      "route": "DELETE /api/articles/:slug/comments/:commentId",
+      "feature": "Delete Comment",
+      "cases": ["happy", "negative", "edge"],
+      "result": "ok"
+    },
+    {
+      "route": "GET /api/profiles/:username",
+      "feature": "View Profile",
+      "cases": ["happy", "negative"],
+      "result": "ok"
+    },
+    {
+      "route": "POST /api/profiles/:username/follow",
+      "feature": "Follow Profile",
+      "cases": ["happy", "negative", "edge"],
+      "result": "bug (see findings: self-follow allowed)"
+    },
+    {
+      "route": "DELETE /api/profiles/:username/follow",
+      "feature": "Unfollow Profile",
+      "cases": ["happy", "edge"],
+      "result": "ok"
+    },
+    {
+      "route": "GET /api/tags",
+      "feature": "Popular Tags list",
+      "cases": ["happy"],
+      "result": "ok"
+    },
+    {
+      "route": "GET /*any (404 catchall)",
+      "feature": "Unknown route handling",
+      "cases": ["negative"],
+      "result": "ok"
+    }
+  ]
+}

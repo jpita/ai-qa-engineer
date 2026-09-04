@@ -1,7 +1,7 @@
 #!/bin/bash
 # make-sandbox.sh — generate a macOS sandbox profile for one AI coding agent.
 #
-#   usage: make-sandbox.sh <claude|codex|grok|kimi|deepseek|none> > agent.sb
+#   usage: make-sandbox.sh <claude|codex|grok|kimi|deepseek|antigravity|none> > agent.sb
 #          sandbox-exec -f agent.sb <the agent command>
 #
 # Policy: allow everything by default, then deny every credential store on the
@@ -49,6 +49,7 @@ cat <<EOF
   (subpath "$H/.kimi-code")
   (subpath "$H/.reasonix")
   (subpath "$H/.gemini")
+  (subpath "$H/.cache/antigravity")
   (literal "$H/.claude.json")
   ;; any .env anywhere under \$HOME
   (regex #"^$H/.*/\.env\$")
@@ -60,7 +61,11 @@ EOF
 case "$AGENT" in
   claude)
     echo ";; ---- 2. claude's own auth, minus the operator's private context ----"
-    echo "(allow file-read* file-write* (subpath \"$H/.claude\") (literal \"$H/.claude.json\") (subpath \"$H/Library/Keychains\"))"
+    echo "(allow file-read* file-write* (subpath \"$H/.claude\") (literal \"$H/.claude.json\"))"
+    echo ";; Claude Code's token lives in login.keychain-db. SBPL is file-level and that one"
+    echo ";; file holds every keychain item, so this grants READ of the whole login keychain."
+    echo ";; Read-only: the agent cannot modify or delete credentials. See docs/SANDBOX-MACOS.md."
+    echo "(allow file-read* (subpath \"$H/Library/Keychains\"))"
     echo "(deny file-read* (literal \"$H/.claude/CLAUDE.md\") (subpath \"$H/.claude/skills\") (subpath \"$H/.claude/projects\") (subpath \"$H/.claude/history\"))"
     ;;
   codex)
@@ -81,6 +86,12 @@ case "$AGENT" in
     echo ";; ---- 2. reasonix reads its key from its own .env, not the environment ----"
     echo "(allow file-read* file-write* (subpath \"$H/.reasonix\"))"
     ;;
+  antigravity)
+    # agy uses ~/.gemini as its home (oauth_creds.json, settings.json, antigravity-cli/),
+    # NOT ~/.cache/antigravity, which is only a staging dir for the installer.
+    echo ";; ---- 2. antigravity's own home and binary ----"
+    echo "(allow file-read* file-write* process-exec (subpath \"$H/.gemini\") (subpath \"$H/.cache/antigravity\") (subpath \"$H/.local/bin\"))"
+    echo "(deny file-read* (subpath \"$H/.gemini/history\"))" ;;
   none) echo ";; ---- 2. no agent credential re-allowed ----" ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac

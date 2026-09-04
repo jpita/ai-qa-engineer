@@ -19,7 +19,18 @@ if (values.findings === undefined || values.model === undefined) {
   process.exit(1);
 }
 
-const raw = JSON.parse(readFileSync(values.findings, "utf8")) as unknown;
+let raw: unknown;
+try {
+  raw = JSON.parse(readFileSync(values.findings, "utf8")) as unknown;
+} catch (e) {
+  const err = e as NodeJS.ErrnoException;
+  process.stderr.write(
+    err.code === "ENOENT"
+      ? `no findings file at ${values.findings}\n`
+      : `${values.findings} is not valid JSON: ${err.message}\n`,
+  );
+  process.exit(1);
+}
 const findings = (Array.isArray(raw) ? raw : (raw as { findings?: unknown[] }).findings ?? []) as Finding[];
 
 interface Finding {
@@ -49,10 +60,22 @@ const esc = (s: unknown): string =>
 const asList = (v: string | string[] | undefined): string[] =>
   v === undefined ? [] : Array.isArray(v) ? v : String(v).split(/\n|(?<=\.)\s+(?=[A-Z0-9])/).filter((x) => x.trim());
 
+let missingShots = 0;
+
+// Screenshot paths in findings.json are relative to the run directory. Try the output
+// dir first, then the findings file's own directory, so this works whether it runs from
+// the run dir or is pointed at one from elsewhere.
 function embedShot(p: string | undefined): string {
   if (p === undefined || p === "") return `<div class="noshot">no screenshot captured</div>`;
-  const abs = path.isAbsolute(p) ? p : path.resolve(outDir, p);
-  if (!existsSync(abs)) return `<div class="noshot">screenshot not found: ${esc(p)}</div>`;
+  const findingsDir = path.dirname(path.resolve(values.findings as string));
+  const abs = path.isAbsolute(p)
+    ? p
+    : ([path.resolve(outDir, p), path.resolve(findingsDir, p)].find((c) => existsSync(c)) ??
+      path.resolve(outDir, p));
+  if (!existsSync(abs)) {
+    missingShots += 1;
+    return `<div class="noshot">screenshot not found: ${esc(p)}</div>`;
+  }
   const ext = (path.extname(abs).slice(1) || "png").toLowerCase();
   const b64 = readFileSync(abs).toString("base64");
   return `<img alt="screenshot" src="data:image/${ext};base64,${b64}" />`;
@@ -157,5 +180,12 @@ const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
 </body></html>`;
 
 writeFileSync(file, html, "utf8");
+if (missingShots > 0) {
+  process.stderr.write(
+    `warning: ${missingShots} screenshot(s) not found, so the report has gaps.\n` +
+      `Paths in findings.json are relative to the run directory. Run this from there, ` +
+      `or pass --out <the run directory>.\n`,
+  );
+}
 process.stderr.write(`bug report: ${findings.length} bugs -> ${file}\n`);
 process.stdout.write(file + "\n");

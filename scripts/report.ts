@@ -124,8 +124,26 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   }
 
-  const read = async (name: string): Promise<unknown> =>
-    JSON.parse(await readFile(path.join(values.dir as string, name), "utf8"));
+  const read = async (name: string): Promise<unknown> => {
+    const file = path.join(values.dir as string, name);
+    let text: string;
+    try {
+      text = await readFile(file, "utf8");
+    } catch {
+      process.stderr.write(
+        `missing ${file}\n` +
+          `report needs test-plan.json, coverage.json, triage.json and results.json ` +
+          `from a completed pipeline run (npm run crawl / coverage / run-specs).\n`,
+      );
+      process.exit(1);
+    }
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      process.stderr.write(`${file} is not valid JSON: ${(e as Error).message}\n`);
+      process.exit(1);
+    }
+  };
 
   const testPlan = TestPlanSchema.parse(await read("test-plan.json"));
   const coverage = CoverageMapSchema.parse(await read("coverage.json"));

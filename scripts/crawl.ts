@@ -2,11 +2,16 @@ import { readFile } from "node:fs/promises";
 import { chromium } from "playwright";
 import type { UiMap } from "./types.js";
 
-const MAX_PAGES = 60;
+const DEFAULT_MAX_PAGES = 60;
+const DEFAULT_MAX_ELEMENTS = 60;
 
 export interface CrawlOptions {
   authStatePath?: string | undefined;
   seedRoutes?: string[] | undefined;
+  /** Stop after this many pages. Default 60. */
+  maxPages?: number | undefined;
+  /** Record at most this many elements per page. Default 60. */
+  maxElements?: number | undefined;
 }
 
 export async function crawlUi(target: string, options: CrawlOptions = {}): Promise<UiMap> {
@@ -39,8 +44,10 @@ export async function crawlUi(target: string, options: CrawlOptions = {}): Promi
     ...(options.seedRoutes ?? []).map((r) => canonical(`${base}/#/${r.replace(/^[#/]+/, "")}`)),
   ];
   const pages: UiMap["pages"] = [];
+  const maxPages = options.maxPages ?? DEFAULT_MAX_PAGES;
+  const maxElements = options.maxElements ?? DEFAULT_MAX_ELEMENTS;
 
-  while (queue.length > 0 && pages.length < MAX_PAGES) {
+  while (queue.length > 0 && pages.length < maxPages) {
     const url = queue.shift();
     if (url === undefined || seen.has(url)) continue;
     seen.add(url);
@@ -52,11 +59,11 @@ export async function crawlUi(target: string, options: CrawlOptions = {}): Promi
       continue;
     }
 
-    const elements = await page.evaluate(() => {
+    const elements = await page.evaluate((limit: number) => {
       const nodes = document.querySelectorAll(
         "button, a[href], input, select, textarea, [role=button], [role=link]",
       );
-      return [...nodes].slice(0, 60).map((el) => ({
+      return [...nodes].slice(0, limit).map((el) => ({
         role: el.getAttribute("role") ?? el.tagName.toLowerCase(),
         name:
           el.getAttribute("aria-label") ??
@@ -64,7 +71,7 @@ export async function crawlUi(target: string, options: CrawlOptions = {}): Promi
           (el.textContent ?? "").trim().slice(0, 60),
         selector: el.id !== "" ? `#${el.id}` : el.tagName.toLowerCase(),
       }));
-    });
+    }, maxElements);
 
     pages.push({ url, title: await page.title(), elements, calls: dedupe(calls) });
 
@@ -120,11 +127,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       out: { type: "string" },
       auth: { type: "string" },
       routes: { type: "string" },
+      "max-pages": { type: "string" },
+      "max-elements": { type: "string" },
     },
   });
   if (values.url === undefined || values.out === undefined) {
     process.stderr.write(
-      "usage: tsx scripts/crawl.ts --url <url> --out <file> [--auth <auth.json>] [--routes <routes.json>]\n",
+      "usage: tsx scripts/crawl.ts --url <url> --out <file> [--auth <auth.json>] " +
+        "[--routes <routes.json>] [--max-pages <n>] [--max-elements <n>]\n",
     );
     process.exit(1);
   }
@@ -133,9 +143,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       ? undefined
       : (JSON.parse(await read(values.routes, "utf8")) as string[]);
 
-  const map = await crawlUi(values.url, { authStatePath: values.auth, seedRoutes });
+  const num = (v: string | undefined): number | undefined =>
+    v === undefined ? undefined : Number(v);
+  const map = await crawlUi(values.url, {
+    authStatePath: values.auth,
+    seedRoutes,
+    maxPages: num(values["max-pages"]),
+    maxElements: num(values["max-elements"]),
+  });
   await writeFile(values.out, JSON.stringify(map, null, 2), "utf8");
   process.stderr.write(
     `${map.pages.length} pages, ${map.pages.flatMap((p) => p.calls).length} API calls -> ${values.out}\n`,
   );
+  const cap = num(values["max-pages"]) ?? DEFAULT_MAX_PAGES;
+  if (map.pages.length >= cap) {
+    process.stderr.write(
+      `warning: hit the ${cap}-page cap, so the crawl may be incomplete. Raise it with --max-pages.\n`,
+    );
+  }
 }
