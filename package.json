@@ -2,7 +2,7 @@
   "name": "ai-qa-engineer",
   "version": "0.1.0",
   "private": true,
-  "description": "A coding agent skill that inspects a web app and its source, plans and writes tests at the right layer, runs them, and triages the failures",
+  "description": "An AI agent that tests a web app the way a QA engineer does, and reports only the bugs it proved",
   "type": "module",
   "scripts": {
     "crawl": "tsx scripts/crawl.ts",
