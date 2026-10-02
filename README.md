@@ -24,7 +24,7 @@ It gives you back:
 1. **A test plan.** Every test case, with steps, the expected result and a risk level.
 2. **A bug report.** Every bug, with steps to make it happen again, a screenshot and the server calls.
 3. **A coverage list.** Every server route, and whether it was tested.
-4. **Automated tests, when you ask.** Playwright tests for every bug and every high-risk test case, so you can run them again after every change.
+4. **Automated tests, when you ask.** Playwright or Cypress tests, your choice, for every bug and every high-risk test case, so you can run them again after every change.
 
 [![The bug report: 11 bugs ranked by severity](docs/images/bug-report-summary.png)](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html)
 
@@ -34,7 +34,7 @@ It gives you back:
 - **Proves every bug.** It reports a bug only after it makes the bug happen a second time.
 - **Covers everything.** It counts every feature in the code and says which ones it could not test.
 - **Tries to break things.** Empty fields, wrong values, duplicates, page reloads.
-- **Writes automated tests.** It turns bugs and high-risk cases into Playwright tests, runs them, and sorts every failure: app bug, test bug, setup problem, or not enough evidence. [See 39 example tests](examples/juice-shop/specs).
+- **Writes automated tests.** In Playwright or Cypress. It turns bugs and high-risk cases into tests, runs them, and sorts every failure: app bug, test bug, setup problem, or not enough evidence. [See 39 example tests](examples/juice-shop/specs).
 - **Works with any AI agent.** Claude Code, Codex, Grok, Kimi, DeepSeek, Antigravity and Copilot.
 
 ## Example: 11 bugs in a demo blog
@@ -70,7 +70,7 @@ flowchart LR
 4. **Run each test.** In a real browser, like a user. Each case is marked pass or fail.
 5. **Prove each bug.** Make it happen again, then save a screenshot and the server calls.
 6. **Write the report.** One web page: the test plan with results, then every bug in detail.
-7. **Write automated tests (optional).** Playwright tests for each bug and each high-risk case. It runs them with no retries and gives each failure a verdict with evidence.
+7. **Write automated tests (optional).** Playwright or Cypress tests for each bug and each high-risk case. It runs them with no retries and gives each failure a verdict with evidence.
 
 It looks for features that do not work. It is not a security scanner.
 
@@ -104,6 +104,14 @@ It looks for features that do not work. It is not a security scanner.
    /ai-qa-engineer --url http://localhost:3000 --source ./conduit
    ```
 
+   To also get automated tests, name the framework: `--tests playwright` or `--tests cypress`.
+
+   ```
+   /ai-qa-engineer --url http://localhost:3000 --source ./conduit --tests cypress
+   ```
+
+   If you ask for tests without naming a framework, it uses the one the app's repo already has, or Playwright.
+
    With only a code link, it downloads the code, starts the site, then tests it:
 
    ```
@@ -136,7 +144,7 @@ Using another agent? Paste [SKILL.md](SKILL.md) into its prompt. Setup for each 
 | `findings.json` | every bug: steps, expected and actual result, server calls, screenshot |
 | `coverage.json` | every server route: tested or not, and why |
 | `bug-report-<date>-<model>.html` | the report, one file with the screenshots inside |
-| `specs/` | the Playwright tests (only when you ask for automated tests) |
+| `specs/` or `cypress/e2e/` | the Playwright or Cypress tests (only when you ask for automated tests) |
 | `triage.json` | a verdict and evidence for each failed test (same) |
 
 ## Examples
