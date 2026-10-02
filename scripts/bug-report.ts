@@ -58,7 +58,9 @@ const esc = (s: unknown): string =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 const asList = (v: string | string[] | undefined): string[] =>
-  v === undefined ? [] : Array.isArray(v) ? v : String(v).split(/\n|(?<=\.)\s+(?=[A-Z0-9])/).filter((x) => x.trim());
+  (v === undefined ? [] : Array.isArray(v) ? v : String(v).split(/\n|(?<=\.)\s+(?=[A-Z0-9])/))
+    .map((x) => x.trim().replace(/^\d+[.)]\s+/, ""))
+    .filter((x) => x);
 
 let missingShots = 0;
 

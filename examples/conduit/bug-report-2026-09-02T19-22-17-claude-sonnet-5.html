@@ -53,7 +53,7 @@
   <div class="meta"><span><b>Endpoint:</b> <code>PUT /api/user</code></span></div>
   <div class="grid">
     <div class="col">
-      <div class="lbl">Steps to replicate</div><ol><li>1) Register/login as a user (e.g. qauser2 / Passw0rd!).</li><li>2) Go to Settings, change only the Bio field (leave Password blank), click Update Settings.</li><li>3) Log out.</li><li>4) Try to log in again with the original password.</li></ol>
+      <div class="lbl">Steps to replicate</div><ol><li>Register/login as a user (e.g. qauser2 / Passw0rd!).</li><li>Go to Settings, change only the Bio field (leave Password blank), click Update Settings.</li><li>Log out.</li><li>Try to log in again with the original password.</li></ol>
       <div class="lbl">API calls</div><pre class="calls">PUT /api/user -&gt; 200, request body captured from the real browser request: {&quot;user&quot;:{&quot;bio&quot;:&quot;QA tester bio update&quot;,&quot;email&quot;:&quot;qauser2@test.com&quot;,&quot;image&quot;:&quot;&quot;,&quot;password&quot;:&quot;&quot;,&quot;username&quot;:&quot;qauser2&quot;}} (the Settings form always sends password:&quot;&quot; when the field is left blank)
 POST /api/users/login {&quot;user&quot;:{&quot;email&quot;:&quot;qauser2@test.com&quot;,&quot;password&quot;:&quot;Passw0rd!&quot;}} -&gt; 422 {&quot;errors&quot;:{&quot;body&quot;:[&quot;Wrong email/password combination&quot;]}}
 POST /api/users/login {&quot;user&quot;:{&quot;email&quot;:&quot;qauser2@test.com&quot;,&quot;password&quot;:&quot;&quot;}} -&gt; 200, login succeeds with an empty password
@@ -72,7 +72,7 @@ Separately: PUT /api/user with the password key omitted entirely from the body (
   <div class="meta"><span><b>Endpoint:</b> <code>POST /api/articles</code></span></div>
   <div class="grid">
     <div class="col">
-      <div class="lbl">Steps to replicate</div><ol><li>1) Log in.</li><li>2) POST /api/articles with an article body that has no tagList key at all.</li><li>3) Reload the home page (Global Feed).</li></ol>
+      <div class="lbl">Steps to replicate</div><ol><li>Log in.</li><li>POST /api/articles with an article body that has no tagList key at all.</li><li>Reload the home page (Global Feed).</li></ol>
       <div class="lbl">API calls</div><pre class="calls">POST /api/articles {&quot;article&quot;:{&quot;title&quot;:&quot;No Tags Article&quot;,&quot;description&quot;:&quot;desc&quot;,&quot;body&quot;:&quot;body text&quot;}} -&gt; 500 {&quot;errors&quot;:{&quot;body&quot;:[&quot;tagList is not iterable&quot;]}}
 sqlite3 dev.sqlite &quot;SELECT id, slug, title, userId FROM Articles;&quot; -&gt; row 1|no-tags-article|No Tags Article|&lt;NULL userId&gt; — the Article row was inserted before the crash and never got an author
 GET /api/articles?limit=3&amp;&amp;offset=0 (no filters, the Global Feed's own request) -&gt; 500 {&quot;errors&quot;:{&quot;body&quot;:[&quot;toAppend.hasFollower is not a function&quot;]}}</pre>
@@ -90,7 +90,7 @@ GET /api/articles?limit=3&amp;&amp;offset=0 (no filters, the Global Feed's own r
   <div class="meta"><span><b>Endpoint:</b> <code>POST /api/users, PUT /api/user</code></span></div>
   <div class="grid">
     <div class="col">
-      <div class="lbl">Steps to replicate</div><ol><li>1) Register user qauser1 (email a@test.com).</li><li>2) Register a second account with username qauser1 again but a different email.</li><li>3) Separately: log in as a different existing user (qauser2) and use Settings to change their username to qauser1.</li></ol>
+      <div class="lbl">Steps to replicate</div><ol><li>Register user qauser1 (email a@test.com).</li><li>Register a second account with username qauser1 again but a different email.</li><li>Separately: log in as a different existing user (qauser2) and use Settings to change their username to qauser1.</li></ol>
       <div class="lbl">API calls</div><pre class="calls">POST /api/users {&quot;user&quot;:{&quot;username&quot;:&quot;qauser1&quot;,&quot;email&quot;:&quot;qauser1b@test.com&quot;,&quot;password&quot;:&quot;Passw0rd!&quot;}} -&gt; 201 (succeeds even though username qauser1 already exists on another account)
 PUT /api/user (as qauser2) {&quot;user&quot;:{&quot;username&quot;:&quot;qauser1&quot;,&quot;password&quot;:&quot;&quot;}} -&gt; 200 (renames qauser2 to the already-taken username qauser1)
 sqlite3 dev.sqlite &quot;SELECT id, username, email FROM Users;&quot; -&gt; 1|qauser1|qauser1@test.com, 2|qauser1|qauser2@test.com, 3|qauser1|qauser1b@test.com — three different accounts, one username
@@ -109,7 +109,7 @@ GET /api/profiles/qauser1 -&gt; always returns account id 1's profile; accounts 
   <div class="meta"><span><b>Endpoint:</b> <code>PUT /api/articles/:slug</code></span></div>
   <div class="grid">
     <div class="col">
-      <div class="lbl">Steps to replicate</div><ol><li>1) Log in as the author of two different articles.</li><li>2) Edit one article's title so it slugifies to the same slug as the other existing article.</li><li>3) Reload the Global Feed.</li></ol>
+      <div class="lbl">Steps to replicate</div><ol><li>Log in as the author of two different articles.</li><li>Edit one article's title so it slugifies to the same slug as the other existing article.</li><li>Reload the Global Feed.</li></ol>
       <div class="lbl">API calls</div><pre class="calls">PUT /api/articles/my-qa-test-article {&quot;article&quot;:{&quot;title&quot;:&quot;No Tags Typed Article&quot;}} -&gt; 200 (title/slug changed with no collision check, unlike article creation which does check)
 sqlite3 dev.sqlite &quot;SELECT id, slug, title FROM Articles;&quot; -&gt; 2|no-tags-typed-article|No Tags Typed Article and 3|no-tags-typed-article|No Tags Typed Article — two different rows, identical slug
 GET /api/articles/no-tags-typed-article -&gt; 200, always returns the same one of the two articles; the other is never returned by this endpoint again</pre>
@@ -127,7 +127,7 @@ GET /api/articles/no-tags-typed-article -&gt; 200, always returns the same one o
   <div class="meta"><span><b>Endpoint:</b> <code>PUT /api/articles/:slug</code></span></div>
   <div class="grid">
     <div class="col">
-      <div class="lbl">Steps to replicate</div><ol><li>1) Log in as the article's author.</li><li>2) Open Edit Article.</li><li>3) Replace the tags field with a new value.</li><li>4) Click Update Article.</li><li>5) View the article.</li></ol>
+      <div class="lbl">Steps to replicate</div><ol><li>Log in as the article's author.</li><li>Open Edit Article.</li><li>Replace the tags field with a new value.</li><li>Click Update Article.</li><li>View the article.</li></ol>
       <div class="lbl">API calls</div><pre class="calls">PUT /api/articles/no-tags-typed-article {&quot;article&quot;:{&quot;tagList&quot;:[&quot;updated&quot;,&quot;brandnew&quot;]}} -&gt; 200, response tagList is still [&quot;testing&quot;] (the submitted tags are ignored)
 GET /api/articles/no-tags-typed-article -&gt; 200, tagList still [&quot;testing&quot;] after the edit</pre>
       <div class="lbl">Expected</div><p>Saving an edited article should update its tag list to what was entered in the form.</p>
@@ -144,7 +144,7 @@ GET /api/articles/no-tags-typed-article -&gt; 200, tagList still [&quot;testing&
   <div class="meta"><span><b>Endpoint:</b> <code>POST /api/articles</code></span></div>
   <div class="grid">
     <div class="col">
-      <div class="lbl">Steps to replicate</div><ol><li>1) Log in.</li><li>2) Create an article with tags &quot;qa, testing&quot; (one short tag, one normal tag).</li><li>3) View the article.</li></ol>
+      <div class="lbl">Steps to replicate</div><ol><li>Log in.</li><li>Create an article with tags &quot;qa, testing&quot; (one short tag, one normal tag).</li><li>View the article.</li></ol>
       <div class="lbl">API calls</div><pre class="calls">POST /api/articles {&quot;article&quot;:{&quot;title&quot;:&quot;My QA Test Article&quot;,&quot;description&quot;:&quot;desc&quot;,&quot;body&quot;:&quot;body text&quot;,&quot;tagList&quot;:[&quot;qa&quot;,&quot;testing&quot;]}} -&gt; 201, response echoes tagList:[&quot;qa&quot;,&quot;testing&quot;]
 GET /api/articles/my-qa-test-article -&gt; 200, tagList is only [&quot;testing&quot;] — &quot;qa&quot; was never saved
 sqlite3 dev.sqlite &quot;SELECT * FROM Tags;&quot; -&gt; only &quot;testing&quot; exists; &quot;qa&quot; was never created</pre>
