@@ -1,10 +1,10 @@
 # ai-qa-engineer
 
-**An AI agent that does the job of a QA tester: it tests a website and writes up every bug it finds.**
+**An AI agent that does the job of a QA engineer: it tests a website and writes up every bug it finds.**
 
 ## What it does, in plain words
 
-Before a website goes live, a QA tester checks that every feature works.
+Before a website goes live, a QA engineer checks that every feature works.
 
 They click through every screen, try wrong input on purpose, and write a report for each bug they find.
 
