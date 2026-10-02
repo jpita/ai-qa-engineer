@@ -8,7 +8,7 @@
 [![Playwright](https://img.shields.io/badge/browser-Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
 [![Agents](https://img.shields.io/badge/works%20with-7%20AI%20agents-8A2BE2)](#key-features)
 
-[Example report](#example-11-bugs-in-a-demo-blog) · [How it works](#how-it-works) · [Quickstart](#quickstart)
+[Live example report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) · [How it works](#how-it-works) · [Quickstart](#quickstart)
 
 </div>
 
@@ -25,7 +25,7 @@ It gives you back three things:
 2. **A bug report.** Every bug, with steps to make it happen again, a screenshot and the server calls.
 3. **A coverage list.** Every server route, and whether it was tested.
 
-[![The bug report: 11 bugs ranked by severity](docs/images/bug-report-summary.png)](#example-11-bugs-in-a-demo-blog)
+[![The bug report: 11 bugs ranked by severity](docs/images/bug-report-summary.png)](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html)
 
 ## Key features
 
@@ -46,7 +46,7 @@ It tested all 21 server routes and found 11 bugs. The 4 most serious:
 3. Two people can sign up with the same username.
 4. Rename an article to the title of another article, and one of them can no longer be opened.
 
-Each bug in the report looks like this:
+Each bug in the report looks like this. [Open the full report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html).
 
 <img src="docs/images/bug-report-card.png" alt="One bug from the report: steps, server calls, expected result, actual result, screenshot" width="720">
 
@@ -137,7 +137,7 @@ Using another agent? Paste [SKILL.md](SKILL.md) into its prompt. Setup for each 
 
 | Run | What it shows |
 | --- | --- |
-| [Conduit](examples/conduit) | a full run: 11 bugs, 21 routes, the report with screenshots |
+| [Conduit](examples/conduit) | a full run: 11 bugs, 21 routes, the [report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) with screenshots |
 | [OWASP Juice Shop](examples/juice-shop) | an early run on 10 of 102 routes: a 39-case test plan, generated Playwright tests, and a review of each failed test |
 
 <details>
