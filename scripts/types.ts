@@ -66,6 +66,7 @@ export const TestCaseSchema = z.object({
   why: z.string(),
   steps: z.array(z.string()),
   expected: z.string(),
+  result: z.string().optional(),
 });
 
 export const TestPlanSchema = z.object({
@@ -110,6 +111,7 @@ export interface CoverageGap {
 // --- what SKILL.md emits (the agent-driven run) ---
 
 export const FindingSchema = z.object({
+  caseId: z.string().optional(),
   title: z.string(),
   feature: z.string(),
   endpoint: z.string(),

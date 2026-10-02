@@ -5,6 +5,7 @@ import { parseArgs } from "node:util";
 const { values } = parseArgs({
   options: {
     findings: { type: "string" },
+    plan: { type: "string" },
     model: { type: "string" },
     app: { type: "string" },
     url: { type: "string" },
@@ -14,7 +15,7 @@ const { values } = parseArgs({
 
 if (values.findings === undefined || values.model === undefined) {
   process.stderr.write(
-    "usage: tsx scripts/bug-report.ts --findings <findings.json> --model <model-id> [--app <name>] [--url <target>] [--out <dir>]\n",
+    "usage: tsx scripts/bug-report.ts --findings <findings.json> --model <model-id> [--plan <test-plan.json>] [--app <name>] [--url <target>] [--out <dir>]\n",
   );
   process.exit(1);
 }
@@ -34,6 +35,7 @@ try {
 const findings = (Array.isArray(raw) ? raw : (raw as { findings?: unknown[] }).findings ?? []) as Finding[];
 
 interface Finding {
+  caseId?: string;
   title?: string;
   feature?: string;
   endpoint?: string;
@@ -44,6 +46,23 @@ interface Finding {
   observed?: string;
   expected?: string;
   screenshot?: string;
+}
+
+interface PlanCase {
+  id?: string;
+  title?: string;
+  layer?: string;
+  risk?: string;
+  result?: string;
+}
+let plan: { summary?: string; cases?: PlanCase[] } | undefined;
+if (values.plan !== undefined) {
+  try {
+    plan = JSON.parse(readFileSync(values.plan, "utf8")) as typeof plan;
+  } catch (e) {
+    process.stderr.write(`cannot read test plan ${values.plan}: ${(e as Error).message}\n`);
+    process.exit(1);
+  }
 }
 
 const slugModel = values.model.replace(/[^A-Za-z0-9._-]+/g, "-");
@@ -104,7 +123,7 @@ const cards = findings
   <summary><span class="badge ${esc(f.severity)}">${esc(f.severity ?? "?")}</span>
     <span class="sumtitle">#${i + 1} ${esc(f.title)}</span>${f.feature ? `<span class="sumfeat">${esc(f.feature)}</span>` : ""}</summary>
   <div class="body">
-  <div class="meta">${f.endpoint ? `<span><b>Endpoint:</b> <code>${esc(f.endpoint)}</code></span>` : ""}</div>
+  <div class="meta">${f.caseId ? `<span><b>Test case:</b> <a href="#case-${esc(f.caseId)}">${esc(f.caseId)}</a></span>` : ""}${f.endpoint ? `<span><b>Endpoint:</b> <code>${esc(f.endpoint)}</code></span>` : ""}</div>
   <div class="grid">
     <div class="col">
       ${steps.length ? `<div class="lbl">Steps to replicate</div><ol>${steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}
@@ -123,6 +142,31 @@ const summaryRows = findings
   .map((f, i) => `<tr class="row-${esc(f.severity)}"><td>${i + 1}</td><td><span class="badge ${esc(f.severity)}">${esc(f.severity ?? "?")}</span></td><td>${esc(f.feature ?? "")}</td><td><a href="#bug-${i + 1}">${esc(f.title)}</a></td></tr>`)
   .join("");
 const summaryTable = `<table class="summary"><thead><tr><th>#</th><th>Severity</th><th>Feature</th><th>Bug</th></tr></thead><tbody>${summaryRows}</tbody></table>`;
+
+const planCases = plan?.cases ?? [];
+const outcome = (r?: string): "pass" | "fail" | "notrun" =>
+  r === "pass" ? "pass" : r === "fail" ? "fail" : "notrun";
+const planCounts = { pass: 0, fail: 0, notrun: 0 };
+for (const c of planCases) planCounts[outcome(c.result)]++;
+const bugForCase = new Map<string, number>();
+findings.forEach((f, i) => {
+  if (f.caseId && !bugForCase.has(f.caseId)) bugForCase.set(f.caseId, i + 1);
+});
+const planRows = planCases
+  .map((c) => {
+    const o = outcome(c.result);
+    const bug = c.id ? bugForCase.get(c.id) : undefined;
+    const label = o === "pass" ? "pass" : o === "fail" ? "fail" : esc(c.result || "not run");
+    const res = bug ? `<a href="#bug-${bug}">${label}, bug #${bug}</a>` : label;
+    return `<tr id="case-${esc(c.id)}"><td><code>${esc(c.id)}</code></td><td><span class="badge ${esc(c.risk)}">${esc(c.risk ?? "?")}</span></td><td>${esc(c.title)}</td><td>${esc(c.layer ?? "")}</td><td class="res ${o}">${res}</td></tr>`;
+  })
+  .join("");
+const planSection = plan
+  ? `<h2>Test plan</h2>${plan.summary ? `<p class="plansum">${esc(plan.summary)}</p>` : ""}
+<details class="plan"${planCases.length <= 40 ? " open" : ""}><summary>${planCases.length} test cases: ${planCounts.pass} passed, ${planCounts.fail} failed, ${planCounts.notrun} not run</summary>
+<table class="summary"><thead><tr><th>ID</th><th>Risk</th><th>Test case</th><th>Layer</th><th>Result</th></tr></thead><tbody>${planRows}</tbody></table></details>
+<h2>Bugs</h2>`
+  : "";
 
 const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -160,23 +204,30 @@ const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
   code{background:#21262d;padding:1px 5px;border-radius:4px;font-size:13px}
   pre.calls{background:#0b0f14;border:1px solid #30363d;border-radius:6px;padding:10px;overflow-x:auto;font-size:12px;white-space:pre-wrap}
   .shot img{width:100%;border:1px solid #30363d;border-radius:6px}
+  h2{font-size:17px;margin:24px 0 8px}
+  .plansum{color:#8b949e;margin:0 0 10px}
+  details.plan>summary{cursor:pointer;color:#e6edf3;font-weight:600;padding:6px 0}
+  td.res.pass{color:#3fb950}td.res.fail,td.res.fail a{color:#f85149}td.res.notrun{color:#8b949e}
+  tr:target{outline:2px solid #58a6ff}
+  .meta a{color:#58a6ff;text-decoration:none}
   .noshot{color:#6e7681;font-style:italic;border:1px dashed #30363d;border-radius:6px;padding:20px;text-align:center}
 </style></head><body>
 <header class="top">
   <h1>QA bug report</h1>
   <div class="sub">Model: <b>${esc(values.model)}</b> &nbsp;·&nbsp; App: ${esc(values.app ?? "—")} ${values.url ? `(${esc(values.url)})` : ""} &nbsp;·&nbsp; ${stamp}</div>
   <div class="tallies">
+    ${plan ? `<span class="pill total">${planCases.length} test cases</span>` : ""}
     <span class="pill total">${findings.length} bugs</span>
     <span class="pill high">${counts.high} high</span>
     <span class="pill medium">${counts.medium} medium</span>
     <span class="pill low">${counts.low} low</span>
   </div>
 </header>
-<main>${findings.length ? summaryTable : ""}${cards || "<p>No findings.</p>"}</main>
+<main>${planSection}${findings.length ? summaryTable : ""}${cards || "<p>No findings.</p>"}</main>
 <script>
   // open a card when its summary-table link is clicked, and on load if URL has a hash
-  function openHash(){var h=location.hash&&document.querySelector(location.hash);if(h&&h.tagName==='DETAILS')h.open=true;}
-  document.querySelectorAll('table.summary a').forEach(function(a){a.addEventListener('click',function(){var t=document.querySelector(this.getAttribute('href'));if(t)t.open=true;});});
+  function openHash(){var h=location.hash&&document.querySelector(location.hash);if(!h)return;if(h.tagName==='DETAILS')h.open=true;var p=h.closest('details');if(p)p.open=true;}
+  document.querySelectorAll('table.summary a[href^="#bug-"], .meta a').forEach(function(a){a.addEventListener('click',function(){var t=document.querySelector(this.getAttribute('href'));if(t)t.open=true;});});
   addEventListener('hashchange',openHash);openHash();
 </script>
 </body></html>`;
@@ -189,5 +240,5 @@ if (missingShots > 0) {
       `or pass --out <the run directory>.\n`,
   );
 }
-process.stderr.write(`bug report: ${findings.length} bugs -> ${file}\n`);
+process.stderr.write(`bug report: ${plan ? `${planCases.length} test cases, ` : ""}${findings.length} bugs -> ${file}\n`);
 process.stdout.write(file + "\n");
