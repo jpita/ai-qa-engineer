@@ -6,20 +6,40 @@ import type { RunResult } from "./types.js";
 export async function run(outDir: string, specDir: string, baseUrl: string): Promise<RunResult[]> {
   const reportFile = path.join(outDir, "playwright-report.json");
 
-  await new Promise<void>((resolve) => {
-    const proc = spawn(
-      "npx",
-      ["playwright", "test", specDir, "--reporter", `json`],
-      {
-        env: { ...process.env, BASE_URL: baseUrl, PLAYWRIGHT_JSON_OUTPUT_NAME: reportFile },
-        stdio: ["ignore", "inherit", "inherit"],
+  // SPEC_DIR sets playwright's testDir. Passing specDir positionally makes playwright
+  // treat it as a filename regex, which silently matches nothing.
+  const code = await new Promise<number>((resolve, reject) => {
+    const proc = spawn("npx", ["playwright", "test", "--reporter", "json"], {
+      env: {
+        ...process.env,
+        SPEC_DIR: specDir,
+        BASE_URL: baseUrl,
+        PLAYWRIGHT_JSON_OUTPUT_NAME: reportFile,
       },
-    );
-    proc.on("close", () => resolve());
+      stdio: ["ignore", "inherit", "inherit"],
+    });
+    proc.on("error", reject);
+    proc.on("close", (c) => resolve(c ?? 1));
   });
 
-  const raw = JSON.parse(await readFile(reportFile, "utf8")) as PlaywrightJson;
-  return flatten(raw);
+  let raw: PlaywrightJson;
+  try {
+    raw = JSON.parse(await readFile(reportFile, "utf8")) as PlaywrightJson;
+  } catch {
+    throw new Error(
+      `playwright exited ${code} and wrote no readable report at ${reportFile}. ` +
+        `Check that ${specDir} contains spec files.`,
+    );
+  }
+
+  const results = flatten(raw);
+  if (results.length === 0) {
+    throw new Error(
+      `No tests ran. ${specDir} matched no spec files (playwright exited ${code}). ` +
+        `A run that executes nothing is a failure, not a pass.`,
+    );
+  }
+  return results;
 }
 
 interface PlaywrightJson {

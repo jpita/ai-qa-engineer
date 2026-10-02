@@ -1,116 +1,112 @@
 # ai-qa-engineer
 
-A coding agent skill that tests a web application the way a quality engineer does: it works out what the system is from three angles, decides what is worth testing, writes the tests at the right layer, runs them, and then decides which failures are real.
+**An AI agent that tests a web app the way a QA engineer does, and reports only the bugs it proved.**
 
-Tell it where the app is and where the code is. Either can be local or remote.
+Give it a running app and its source code.
+It reads the code, lists every feature and API route, and tests each one in a real browser.
+You get back one HTML bug report: repro steps, screenshots and the exact API calls for every bug.
 
-```
-/ai-qa-engineer --url http://localhost:3000 --source ~/code/juice-shop
-/ai-qa-engineer --source https://github.com/juice-shop/juice-shop     # clones it, boots it
-```
+[![Bug report summary: 11 bugs found in Conduit](docs/images/bug-report-summary.png)](examples/conduit)
 
-## Docs
+<sub>A real run against [Conduit](https://github.com/TonyMckes/conduit-realworld-example-app), the RealWorld demo app: 11 functional bugs, 4 of them high severity, all 21 backend routes covered. [Open the full report](examples/conduit).</sub>
 
-| | |
-| --- | --- |
-| [Quickstart](docs/QUICKSTART.md) | wire a browser, boot a target app, run it |
-| [Sandboxing agents](docs/SANDBOX-MACOS.md) | stop an agent reading your credentials (macOS) |
+## What makes it different
 
-[SKILL.md](SKILL.md) is plain markdown. Inline it into any agent's prompt.
+- **Proof, not guesses.** A bug is reported only if the agent reproduced it live on the running app.
+- **Full coverage, with a count.** It counts every route the server registers. Each route gets a result, or a reason it could not be tested.
+- **The UI and the API, both.** A green API call does not prove the screen sends that call. It tests both layers.
+- **Any agent.** The skill is one Markdown file. It runs on Claude Code, Codex, Grok, Kimi, DeepSeek and Antigravity.
 
-## The split
+## Every bug comes with evidence
 
-The interesting design choice is what is code and what is not.
+<img src="docs/images/bug-report-card.png" alt="One bug card: steps, API calls, expected, observed, screenshot" width="720">
 
-| Code, deterministic | The skill, judgment |
-| --- | --- |
-| crawl the app, record every element and XHR | read the source, work out the real API surface |
-| join crawl and API surface into a coverage map | write the ranked test plan |
-| run the suite, parse the results | write the specs at the right layer |
-| render the report | triage every failure |
-| validate every artifact against a schema | |
+## Quickstart
 
-Crawling is not a judgment call, so it is a script. Deciding whether a failed test is a bug is nothing but judgment, so it is not. Putting an LLM in the first job makes it slow and unreliable; putting code in the second job is why most generated test suites are noise.
-
-Every artifact the skill writes is validated against a Zod schema before the next stage reads it, so a malformed plan fails immediately instead of silently producing bad specs.
-
-## Why three views of the system
-
-Crawling the UI tells you what a user can click. It does not tell you which status codes a handler can return, which fields it validates, or which endpoints have no UI in front of them at all.
-
-| View | From | What only it tells you |
-| --- | --- | --- |
-| UI map | Playwright crawl | what a user can reach, and which calls each page fires |
-| API surface | the server source | every route, its real validation, the codes that genuinely exist |
-| Coverage map | both, joined | which screen calls which endpoint |
-
-The coverage map is the useful one. When an endpoint changes it tells you exactly which screens to regression test, and that list is not the same as the list of changed files. Using changed files instead is how regressions get missed.
-
-## Three test layers
-
-**api** — call the endpoint directly. Cheap, fast, and where negative paths belong: bad payloads, missing fields, wrong types, unauthorised access.
-
-**ui** — drive the real browser against the real backend.
-
-**ui_mocked** — drive the browser, but intercept the call and return a failure the real backend will not produce on demand: a 500, an empty list, a malformed body. This reaches the error handling you otherwise cannot test, and that is where a lot of real UI bugs live.
-
-### The rule the tool enforces
-
-> A backend endpoint is not verified by calling it yourself. A direct call proves the server handles the payload **the test** chose. It does not prove the application sends that payload.
-
-The frontend can send an old field name, drop a parameter, call the wrong route, or never call it on the screen the user is actually on. Every one of those still passes a green direct call.
-
-So every endpoint with a UI caller must be covered at both layers. If the plan covers only one, the report names the endpoint and the screens affected. It does not quietly claim coverage it does not have.
-
-## Triage
-
-Generating tests is easy and mostly useless. The moment you run them you get failures, and each is one of four things: the app is broken, the test is broken, the environment was not ready, or there is not enough evidence to say.
-
-Getting it wrong costs in both directions. Report a bad test as a product bug and you burn a developer's afternoon. Wave a real bug through as flaky and it ships.
-
-So each failure gets a verdict, the evidence behind it, and a confidence level. Three rules it triages under:
-
-- A timeout is not automatically a bug. What was the test waiting for, and could it ever have appeared?
-- Raising a timeout is never the fix for a broken test. Find what it should have waited on.
-- `inconclusive` is a real answer, not a failure to decide.
-
-## Output
-
-```
-artifacts/<run>/
-  ui-map.json        what the crawl found
-  api-surface.json   what the source says exists
-  coverage.json      which screen calls which endpoint
-  test-plan.json     ranked cases, each with a layer
-  specs/             generated Playwright tests
-  results.json       what passed and what did not
-  triage.json        a verdict and evidence per failure
-  QA-REPORT.md       the thing a developer reads
+```bash
+git clone https://github.com/jpita/ai-qa-engineer.git
+cd ai-qa-engineer
+npm install
+npx playwright install chromium
 ```
 
-A full example run against Juice Shop is committed under [`examples/juice-shop/`](examples/juice-shop).
+Link the skill into Claude Code:
+
+```bash
+mkdir -p ~/.claude/skills/ai-qa-engineer
+ln -s "$PWD/SKILL.md" ~/.claude/skills/ai-qa-engineer/SKILL.md
+```
+
+Run it. The app and the source can each be local or remote:
+
+```
+/ai-qa-engineer --url http://localhost:3000 --source ./conduit
+/ai-qa-engineer --source https://github.com/juice-shop/juice-shop   # clones, boots, then tests
+```
+
+Other agents: paste [SKILL.md](SKILL.md) into the prompt.
+Full setup, including the Playwright browser: [Quickstart](docs/QUICKSTART.md).
+
+> [!WARNING]
+> The agent runs with your shell and your permissions.
+> Run it against a throwaway app, or [sandbox it](docs/SANDBOX-MACOS.md).
+
+## How it works
+
+1. **Read.** It reads the frontend and backend and lists every route. That list is the coverage target.
+2. **Test.** For each feature it runs the happy path, bad input, edge cases and a reload check, in a real browser.
+3. **Prove.** It keeps only the bugs it reproduced, with a screenshot and the captured requests.
+4. **Report.** It writes `findings.json`, `coverage.json` and one self-contained HTML report.
+
+Scope is functional bugs: wrong results, lost data, crashes, bad error handling.
+It is not a security scanner.
 
 ## Design decisions
 
-**The target runs in Docker, not on the public internet.** Default is OWASP Juice Shop pinned to a version. A shared public demo makes runs non-reproducible, and a flaky suite proves nothing about anything.
+**Code for the mechanical work, the agent for judgment.**
 
-**`retries: 0`.** Retries hide the exact signal triage exists to read. An unstable test is a finding.
+| Code | The agent |
+| --- | --- |
+| crawl the app, record its elements and requests | read the source, find the real API surface |
+| join the crawl and the API into a coverage map | rank what to test |
+| run the suite, parse the results | write tests at the right layer |
+| render the report | decide which failures are real bugs |
+| validate every output against a schema | |
 
-**No generated timeouts.** The skill is told never to emit one. The default retry window is the answer unless someone has measured that it is not, and then the measured number goes in the comment.
+An LLM doing the crawl is slow and unreliable.
+Code doing the triage gives you the noise most generated test suites are made of.
 
-**The source read reports gaps instead of guessing.** If it cannot tell whether a route validates a field, it says so rather than inventing a rule that becomes a misleading test.
+**Three test layers.**
 
-**The report is the product.** Everything else is scaffolding around one file a developer can act on: steps, expected result, evidence, honest confidence, and what was not covered.
+| Layer | What it does | Best for |
+| --- | --- | --- |
+| `api` | calls the endpoint directly | bad payloads, missing fields, wrong types |
+| `ui` | drives the real browser on the real backend | the flows a user actually does |
+| `ui_mocked` | drives the browser, fakes the response | a 500, an empty list, a malformed body |
 
-## Setup
+Every endpoint with a screen in front of it is tested at both the API and the UI layer.
+If the plan covers only one, the report says so.
 
-```bash
-npm install
-npx playwright install chromium
-npm run app:up
-```
+**Triage has four answers.** Each failure is one of: app broken, test broken, environment not ready, or not enough evidence.
+Each gets a verdict, the evidence and a confidence level.
+`inconclusive` is a valid answer.
 
-Then run the skill from Claude Code. No API key: the judgment stages run on your existing Claude Code session, the scripts run locally.
+**No retries, no invented timeouts.** A retry hides the signal triage needs. A timeout is raised only with a measured number.
+
+**Gaps are reported, not guessed.** If the source does not show whether a field is validated, the report says so.
+
+## Examples
+
+| | What it shows |
+| --- | --- |
+| [`examples/conduit/`](examples/conduit) | a full skill run: 11 bugs, 21 routes, the HTML report with screenshots |
+| [`examples/juice-shop/`](examples/juice-shop) | the script pipeline on [OWASP Juice Shop](https://github.com/juice-shop/juice-shop): UI map, API surface, test plan, generated Playwright specs, triage. An early run: 10 of 102 routes |
+
+## Docs
+
+- [Quickstart](docs/QUICKSTART.md): wire a browser, start a target app, run it, compare agents
+- [Sandboxing agents](docs/SANDBOX-MACOS.md): keep an agent away from your credentials on macOS
+- [SKILL.md](SKILL.md): the full instructions the agent follows
 
 ## License
 

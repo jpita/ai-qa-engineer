@@ -36,10 +36,12 @@ SBPL is last-match-wins, so the policy is three blocks:
 
 ;; hand back one thing: this agent's own credential
 (allow file-read* file-write* (subpath "/Users/you/.claude"))
-(deny  file-read* (subpath "/Users/you/.claude/skills"))
+(deny  file-read* (literal "/Users/you/.claude/CLAUDE.md")
+                  (subpath "/Users/you/.claude/skills")
+                  (subpath "/Users/you/.claude/projects"))
 ```
 
-Deny by default, allow by exception.
+Allow by default so the tool still works, then subtract, then hand back the one credential.
 
 ## Use
 
@@ -65,6 +67,8 @@ Or `BASE_URL=http://localhost:3000 ./scripts/run-agent.sh claude`, which generat
 | `claude` | `cat ~/.claude/CLAUDE.md` | denied |
 | `claude` | `cat ~/.claude/settings.json` | readable — its own auth |
 | `kimi` | `ls ~/.codex` | denied |
+| `kimi` | `ls ~/Library/Keychains` | denied |
+| `claude` | `ls ~/Library/Keychains` | **readable, read-only** (see below) |
 
 ## Environment bugs
 
@@ -82,6 +86,7 @@ Or `BASE_URL=http://localhost:3000 ./scripts/run-agent.sh claude`, which generat
 - **`sandbox-exec` is deprecated** (per its man page). Works on macOS 26; no compatibility promise.
 - **File-level only.** Does not stop it spending API credits or wrecking the app under test.
 - **Not a container.** For a real trust boundary, use a VM.
+- **The `claude` profile can read your login keychain.** Claude Code's token lives in `login.keychain-db`, and SBPL is file-level: that one file holds every keychain item, so there is no way to grant the token without granting the file. The grant is read-only, so nothing can be modified or deleted. Every other agent profile denies it outright. If this matters to you, run Claude with an API key in the environment instead and drop the grant.
 - **Keys stay in plaintext.** This stops *other* agents reading them; it does not encrypt them.
 
 The sandbox does not cover two things: global instruction files (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`) go to whichever vendor is running, and these binaries are unsandboxed when you use them outside a run.

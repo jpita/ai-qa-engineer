@@ -42,6 +42,9 @@ export function tokenCookie(account: Account): Record<string, string> {
 
 export async function dismissOverlays(page: Page): Promise<void> {
   await dismissBanners(page);
+  // The backdrop often is not there at all, so this waits for an absence and is
+  // expected to time out. 5s instead of the 30s default only to avoid burning
+  // half a minute per call on the common case; the .catch makes it non-fatal.
   await page
     .locator(".cdk-overlay-backdrop")
     .waitFor({ state: "detached", timeout: 5000 })

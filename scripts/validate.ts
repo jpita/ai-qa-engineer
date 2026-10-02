@@ -1,7 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { z } from "zod";
-import { ApiSurfaceSchema, TestPlanSchema, TriageSchema, UiMapSchema, CoverageMapSchema } from "./types.js";
+import {
+  ApiSurfaceSchema,
+  CoverageMapSchema,
+  FindingsSchema,
+  RouteCoverageSchema,
+  TestPlanSchema,
+  TriageSchema,
+  UiMapSchema,
+} from "./types.js";
 
 const SCHEMAS: Record<string, z.ZodType> = {
   "ui-map": UiMapSchema,
@@ -9,6 +17,9 @@ const SCHEMAS: Record<string, z.ZodType> = {
   coverage: CoverageMapSchema,
   "test-plan": TestPlanSchema,
   triage: TriageSchema,
+  // emitted by the skill itself, not the script pipeline
+  findings: FindingsSchema,
+  "route-coverage": RouteCoverageSchema,
 };
 
 const { values } = parseArgs({ options: { schema: { type: "string" }, file: { type: "string" } } });
