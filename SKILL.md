@@ -1,6 +1,6 @@
 ---
 name: ai-qa-engineer
-description: Test a running web app the way a QA engineer would and find FUNCTIONAL bugs — features that do the wrong thing, break, miscalculate, lose data, or handle errors badly. Reads the frontend and backend, maps every feature and route, writes a test plan, runs each case (happy path, negative path, edge cases, regression) against the running app, and reports only bugs reproduced with evidence. Not a security tool. Use when asked to test a web app, find bugs, write a test plan, or produce a QA report.
+description: Test a running web app the way a QA engineer would and find FUNCTIONAL bugs — features that do the wrong thing, break, miscalculate, lose data, or handle errors badly. Reads the frontend and backend, maps every feature and route, writes a test plan, runs each case (happy path, negative path, edge cases, regression) against the running app, and reports only bugs reproduced with evidence. Not a security tool. Can also write Playwright or Cypress regression tests on request. Use when asked to test a web app, find bugs, write a test plan, write automated tests, or produce a QA report.
 user-invocable: true
 ---
 
@@ -74,6 +74,12 @@ You must read the frontend and backend to enumerate every route the server regis
 
 Optionally a pull request URL, which aims the run at regression around that change.
 
+Optionally the test framework for Stage 7: `playwright` or `cypress` (for example `--tests cypress`). Naming a framework is a request for automated tests, so Stage 7 runs. When Stage 7 runs with no framework named:
+
+1. If the app's repo already has a `cypress.config.*` or a `playwright.config.*`, use that framework, so the tests fit the team's setup.
+2. If it has both or neither, use Playwright.
+3. Say in the report which framework you used and why.
+
 Work in the current directory. Write the output files there.
 
 ## Tools every run uses
@@ -82,7 +88,7 @@ The methodology is what matters, not the exact tool:
 
 - **API layer** — any HTTP client (`curl`, `fetch`).
 - **UI layer** — a real browser via Playwright MCP (required, see above).
-- **The `npm run *` helpers** (`crawl`, `coverage`, `run-specs`, `report`, `validate`, `bug-report`) live in this skill's own repo. `cd` into it and run them: `npm run crawl -- --url <target>`. They are an OPTIONAL accelerator for the mechanical steps. If you prefer, do the same work by hand with HTTP and the browser. The output is identical.
+- **The `npm run *` helpers** (`crawl`, `coverage`, `run-specs`, `report`, `validate`, `bug-report`) live in this skill's own repo. `run-specs` runs Playwright tests only; for Cypress, run `npx cypress run` yourself. `cd` into it and run them: `npm run crawl -- --url <target>`. They are an OPTIONAL accelerator for the mechanical steps. If you prefer, do the same work by hand with HTTP and the browser. The output is identical.
 
 ---
 
@@ -203,14 +209,33 @@ It embeds the screenshots, sorts by severity, and writes the correctly named fil
 
 ## Optional Stage 7 — Build a regression suite
 
-Only when asked to leave behind automated tests. Turn each confirmed bug and each high-risk case in `test-plan.json` into a Playwright spec:
+Only when asked to leave behind automated tests. Turn each confirmed bug and each high-risk case in `test-plan.json` into an automated test, in the framework chosen above.
+
+Rules for both frameworks:
+
+- One test, one reason to fail. Put the case id in the test name, for example `settings-03: saving the profile keeps the old password`.
+- A test for a confirmed bug asserts the CORRECT behaviour, so it fails today and passes once the bug is fixed.
+- Create the data you assert on. Never depend on data another test or a seed left behind.
+- Never set an explicit timeout or a fixed wait. Wait on the thing you need: a response, an element state. If you believe the default is too short, measure it and put the number in a comment.
+- Run with retries OFF. An unstable test is a finding. Keep screenshots and traces or videos on failure.
+
+**Playwright**: files in `specs/*.spec.ts`:
 
 - **api** cases: `test("...", async ({ request }) => ...)`, assert status and body shape.
-- **ui** cases: role/text locators (`getByRole`, `getByLabel`, `getByText`), create the data you assert on.
-- Never set an explicit timeout or use `waitForTimeout`; wait on the thing you need (a response, an element state). If you believe the default is too short, measure it and put the number in a comment.
-- One test, one reason to fail. Annotate each with its case id.
-- Run with retries OFF (an unstable test is a finding), keep traces/screenshots on failure.
-- Then triage every failure: `product_bug` (the app is wrong), `test_bug` (the test is wrong), `environment` (setup not ready), or `inconclusive`. Cite the evidence for each. A timeout is not automatically a bug; raising a timeout is never the fix for a test bug.
+- **ui** cases: role/text locators (`getByRole`, `getByLabel`, `getByText`).
+- **ui_mocked** cases: `page.route()` to return the failure, then assert what the user sees.
+- Wait with `expect(...).toBeVisible()` or `page.waitForResponse()`. Never `waitForTimeout`.
+- Config: `retries: 0`, `trace: "retain-on-failure"`. Run: `npx playwright test`.
+
+**Cypress**: files in `cypress/e2e/*.cy.ts`:
+
+- **api** cases: `cy.request({ method, url, body, failOnStatusCode: false })`, assert status and body shape.
+- **ui** cases: `cy.contains()` and `data-*` attributes; `cy.findByRole()` only if `@testing-library/cypress` is installed.
+- **ui_mocked** cases: `cy.intercept(method, url, { statusCode: 500 })`, then assert what the user sees.
+- Wait on the request: `cy.intercept(...).as("save")`, act, then `cy.wait("@save")`. Never `cy.wait(<milliseconds>)`.
+- Config: `retries: 0`, `video: true`. Run: `npx cypress run` (no `--browser` flag; it defaults to Electron).
+
+Then triage every failure: `product_bug` (the app is wrong), `test_bug` (the test is wrong), `environment` (setup not ready), or `inconclusive`. Cite the evidence for each in `triage.json`. A timeout is not automatically a bug; raising a timeout is never the fix for a test bug.
 
 ---
 
