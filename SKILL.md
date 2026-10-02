@@ -1,6 +1,6 @@
 ---
 name: ai-qa-engineer
-description: Test a running web app the way a QA engineer would and find FUNCTIONAL bugs — features that do the wrong thing, break, miscalculate, lose data, or handle errors badly. Reads the frontend and backend, maps every feature and route, exercises each one (happy path, negative path, edge cases, regression) against the running app, and reports only bugs reproduced with evidence. Not a security tool. Use when asked to test a web app, find bugs, or produce a QA report.
+description: Test a running web app the way a QA engineer would and find FUNCTIONAL bugs — features that do the wrong thing, break, miscalculate, lose data, or handle errors badly. Reads the frontend and backend, maps every feature and route, writes a test plan, runs each case (happy path, negative path, edge cases, regression) against the running app, and reports only bugs reproduced with evidence. Not a security tool. Use when asked to test a web app, find bugs, write a test plan, or produce a QA report.
 user-invocable: true
 ---
 
@@ -110,9 +110,41 @@ Write `ui-map.json` (pages, elements, observed calls) and `api-surface.json` (on
 
 Produce `coverage.json`: one row per backend route, saying which UI pages call it and which frontend files reference it. This is the denominator. Any observed call that matches no known route is either a route you missed or a third party — check before accepting it.
 
-## Stage 3 — Test every feature
+## Stage 3 — Write the test plan
 
-Go feature by feature and route by route, running the cases from "What to test" above against the running app. For a real user flow, drive it in the browser; for direct API behaviour, use HTTP.
+Before you test anything, write `test-plan.json`. It is the list of test cases you will run, written the way a QA engineer writes one for a human tester.
+
+- Cover every feature from Stage 1 and every route from Stage 2. A feature with no test case is a gap; name it in `summary`.
+- For each feature, write the cases from "What to test" above that apply: happy path, negative path, edge, state and persistence, correct user's data, regression.
+- Pick the layer per case: `ui` for a flow a user performs, `api` for bad payloads and status codes, `ui_mocked` for a server failure the real backend will not produce on demand.
+- Rank by risk. `high` is a feature where a bug loses data, blocks a core flow, or affects every user.
+- Each case is concrete: the exact steps and the exact expected result. "Check login works" is not a test case.
+
+```
+{ "summary": "what the app is, what this plan covers, and what it does not",
+  "riskAreas": [ { "area": "Settings", "risk": "high", "reason": "saves the account password" } ],
+  "cases": [ {
+    "id": "settings-03",
+    "title": "Saving the profile with the password field empty keeps the old password",
+    "layer": "ui",
+    "endpoint": "PUT /api/user",
+    "risk": "high",
+    "why": "every profile edit goes through this form",
+    "steps": ["Log in", "Open Settings", "Change only Bio, leave Password empty, click Update", "Log out and log in with the old password"],
+    "expected": "Login succeeds with the old password",
+    "result": "fail"
+  } ] }
+```
+
+Leave `result` empty now. Stage 4 fills it.
+
+## Stage 4 — Test every feature
+
+Run every case in `test-plan.json` against the running app. For a real user flow, drive it in the browser; for direct API behaviour, use HTTP.
+
+After each case, set its `result`: `pass`, `fail`, or `not run: <reason>`. A case that fails becomes a finding, and the finding's `caseId` names the case.
+
+When testing shows something the plan missed, add a case for it to `test-plan.json`, run it, and record the result. The plan at the end is the plan you actually ran.
 
 A bug counts only if you reproduced it live. Capture the evidence as you go:
 
@@ -120,13 +152,14 @@ A bug counts only if you reproduced it live. Capture the evidence as you go:
 - **Record the exact calls.** For an API bug, put the request(s) and response(s) in the finding's `calls` field (method, path, headers, body, status, response body). These are also the replication steps.
 - Also record the human `reproduction` steps and the `expected` vs `observed`.
 
-## Stage 4 — Report
+## Stage 5 — Report
 
-Write two files.
+Write two files. `test-plan.json` from Stage 3 is the third, with every `result` filled.
 
 `findings.json`:
 ```
 { "findings": [ {
+  "caseId": "the test-plan case that found it, e.g. settings-03",
   "title": "short description of the wrong behaviour",
   "feature": "the feature it belongs to",
   "endpoint": "METHOD /path or the UI page",
@@ -144,16 +177,16 @@ Write two files.
 { "coverage": [ {
   "route": "METHOD /path",
   "feature": "which feature",
-  "cases": ["happy","negative","edge","persistence"],
+  "cases": ["the test-plan case ids that exercise this route"],
   "result": "ok | bug (see findings) | could not test: <reason>"
 } ] }
 ```
 
 The number of coverage rows must equal the number of routes the server registers. Fewer means you missed routes; go back to Stage 1.
 
-## Stage 5 — Build the bug report (required)
+## Stage 6 — Build the bug report (required)
 
-Turn `findings.json` into ONE self-contained HTML file: a card per bug, each with its severity, steps to replicate, the API calls (for API bugs), expected vs observed, and the embedded screenshot. The file must be standalone (screenshots embedded as data URIs, no external files) so it opens locally with no server.
+Turn `findings.json` and `test-plan.json` into ONE self-contained HTML file: the test plan with each case's result, then a card per bug, each with its severity, steps to replicate, the API calls (for API bugs), expected vs observed, and the embedded screenshot. The file must be standalone (screenshots embedded as data URIs, no external files) so it opens locally with no server.
 
 The filename MUST carry the date, timestamp and the model that ran it, so reports can be compared later:
 `bug-report-<YYYY-MM-DDTHH-MM-SS>-<model>.html`
@@ -162,15 +195,15 @@ You build this yourself. The generator is provided; run it from the skill's repo
 
 ```
 npm run bug-report -- \
-  --findings <path>/findings.json --model "<the model label you were told you are running as>" \
+  --findings <path>/findings.json --plan <path>/test-plan.json --model "<the model label you were told you are running as>" \
   --app "<app name>" --url "<target url>" --out <path>
 ```
 
-It embeds the screenshots, sorts by severity, and writes the correctly named file. If for any reason you cannot run it, build the same single HTML file by hand to the same spec (one card per bug, screenshot embedded as a data URI, filename with timestamp and model).
+It embeds the screenshots, sorts by severity, and writes the correctly named file. If for any reason you cannot run it, build the same single HTML file by hand to the same spec (the test plan table, one card per bug, screenshot embedded as a data URI, filename with timestamp and model).
 
-## Optional Stage 6 — Build a regression suite
+## Optional Stage 7 — Build a regression suite
 
-Only when asked to leave behind automated tests. Turn each confirmed bug and each key happy path into a Playwright spec:
+Only when asked to leave behind automated tests. Turn each confirmed bug and each high-risk case in `test-plan.json` into a Playwright spec:
 
 - **api** cases: `test("...", async ({ request }) => ...)`, assert status and body shape.
 - **ui** cases: role/text locators (`getByRole`, `getByLabel`, `getByText`), create the data you assert on.

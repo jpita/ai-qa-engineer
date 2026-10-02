@@ -93,7 +93,7 @@ The app source is at: $SRC
 Read the source to enumerate every backend route. That count is your coverage denominator.
 Use HTTP for the API layer and the Playwright MCP browser for the UI layer.
 You are running as model: claude-sonnet-5
-Write findings.json and coverage.json here, screenshot each bug, then build the Stage 5 report.
+Write test-plan.json first, then findings.json and coverage.json here, screenshot each bug, then build the Stage 6 report.
 
 ===== SKILL =====
 $SKILL"
@@ -121,6 +121,7 @@ One-shot is the intended mode.
 
 | File | Contents |
 | --- | --- |
+| `test-plan.json` | every test case: steps, expected result, risk, and the result once run |
 | `findings.json` | one entry per bug: steps, expected vs observed, API calls, screenshot path |
 | `coverage.json` | one row per backend route, with the result or why it could not be tested |
 | `bug-report-<timestamp>-<model>.html` | self-contained, screenshots embedded, opens with no server |

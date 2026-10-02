@@ -61,9 +61,9 @@ TASK="Follow the QA skill below EXACTLY. Target the running app at BASE_URL: $BA
 Use plain HTTP for the API layer and the Playwright MCP browser for the UI layer.
 You are running as model: $MODEL_LABEL
 FIND functional bugs (do not write or run regression specs; that is the optional later stage).
-Write findings.json and coverage.json in the current directory, in the shapes the skill describes -- capture a screenshot per bug and record the API calls as the skill requires.
-Then do the skill's Stage 5: build the single self-contained bug-report HTML, named with the timestamp and the model label \"$MODEL_LABEL\", for app \"$APP_NAME\".
-When findings.json, coverage.json and the bug-report HTML are written, stop.
+Write test-plan.json before testing, then findings.json and coverage.json, in the current directory, in the shapes the skill describes -- capture a screenshot per bug and record the API calls as the skill requires.
+Then do the skill's Stage 6: build the single self-contained bug-report HTML, named with the timestamp and the model label \"$MODEL_LABEL\", for app \"$APP_NAME\".
+When test-plan.json, findings.json, coverage.json and the bug-report HTML are written, stop.
 
 ===== SKILL =====
 $SKILL"
