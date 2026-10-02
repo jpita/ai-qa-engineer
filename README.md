@@ -19,11 +19,12 @@ You give it two things:
 - a website that is running
 - the website's code
 
-It gives you back three things:
+It gives you back:
 
 1. **A test plan.** Every test case, with steps, the expected result and a risk level.
 2. **A bug report.** Every bug, with steps to make it happen again, a screenshot and the server calls.
 3. **A coverage list.** Every server route, and whether it was tested.
+4. **Automated tests, when you ask.** Playwright tests for every bug and every high-risk test case, so you can run them again after every change.
 
 [![The bug report: 11 bugs ranked by severity](docs/images/bug-report-summary.png)](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html)
 
@@ -33,6 +34,7 @@ It gives you back three things:
 - **Proves every bug.** It reports a bug only after it makes the bug happen a second time.
 - **Covers everything.** It counts every feature in the code and says which ones it could not test.
 - **Tries to break things.** Empty fields, wrong values, duplicates, page reloads.
+- **Writes automated tests.** It turns bugs and high-risk cases into Playwright tests, runs them, and sorts every failure: app bug, test bug, setup problem, or not enough evidence. [See 39 example tests](examples/juice-shop/specs).
 - **Works with any AI agent.** Claude Code, Codex, Grok, Kimi, DeepSeek, Antigravity and Copilot.
 
 ## Example: 11 bugs in a demo blog
@@ -59,6 +61,7 @@ flowchart LR
   P --> C["4. Run each test<br/>in a real browser"]
   C --> D["5. Repeat each bug<br/>to prove it"]
   D --> E["6. Write the<br/>report"]
+  E -.-> F["7. Write automated<br/>tests (optional)"]
 ```
 
 1. **Read the code.** The screens and the server behind them.
@@ -67,6 +70,7 @@ flowchart LR
 4. **Run each test.** In a real browser, like a user. Each case is marked pass or fail.
 5. **Prove each bug.** Make it happen again, then save a screenshot and the server calls.
 6. **Write the report.** One web page: the test plan with results, then every bug in detail.
+7. **Write automated tests (optional).** Playwright tests for each bug and each high-risk case. It runs them with no retries and gives each failure a verdict with evidence.
 
 It looks for features that do not work. It is not a security scanner.
 
@@ -132,6 +136,8 @@ Using another agent? Paste [SKILL.md](SKILL.md) into its prompt. Setup for each 
 | `findings.json` | every bug: steps, expected and actual result, server calls, screenshot |
 | `coverage.json` | every server route: tested or not, and why |
 | `bug-report-<date>-<model>.html` | the report, one file with the screenshots inside |
+| `specs/` | the Playwright tests (only when you ask for automated tests) |
+| `triage.json` | a verdict and evidence for each failed test (same) |
 
 ## Examples
 
