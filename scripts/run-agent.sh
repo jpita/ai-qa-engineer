@@ -23,7 +23,7 @@ SKILL_FILE="${SKILL_FILE:-$REPO/SKILL.md}"
 # -m/--model to every CLI call below. Never rely on a CLI's own default — it can
 # change between two runs with no warning, which breaks a comparison silently.
 case "$AGENT" in
-  claude|codex|grok|kimi|deepseek|antigravity) ;;
+  claude|codex|grok|kimi|deepseek|antigravity|copilot) ;;
   *) echo "unknown agent: $AGENT" >&2; exit 1 ;;
 esac
 # shellcheck source=scripts/models.env
@@ -35,9 +35,16 @@ case "$AGENT" in
   kimi)        MODEL="$MODEL_KIMI" ;;
   deepseek)    MODEL="$MODEL_DEEPSEEK" ;;
   antigravity) MODEL="$MODEL_ANTIGRAVITY" ;;
+  copilot)     MODEL="$MODEL_COPILOT" ;;
 esac
-[ -n "$MODEL" ] || { echo "no model set for $AGENT in scripts/models.env" >&2; exit 1; }
-MODEL_LABEL="$MODEL"
+# copilot has no --model that this account's plan accepts (confirmed 04-09-2026) -- it
+# always runs its own unpinned default, so it is the one agent allowed an empty MODEL.
+if [ "$AGENT" != "copilot" ]; then
+  [ -n "$MODEL" ] || { echo "no model set for $AGENT in scripts/models.env" >&2; exit 1; }
+  MODEL_LABEL="$MODEL"
+else
+  MODEL_LABEL="copilot-default"
+fi
 
 mkdir -p "$OUT_DIR"
 log(){ echo "[$(date +%H:%M:%S)] $AGENT: $*"; }
@@ -109,6 +116,9 @@ case "$AGENT" in
   antigravity)
     $SANDBOX "$HOME/.local/bin/agy" -p "$TASK" --model "$MODEL" --effort "$ANTIGRAVITY_EFFORT" \
       --dangerously-skip-permissions > run.log 2>&1 < /dev/null ;;
+  copilot)
+    $SANDBOX copilot -p "$TASK" --additional-mcp-config "@$PW_CFG" \
+      --allow-all-tools --allow-all-urls > run.log 2>&1 < /dev/null ;;
 esac
 log "run done in $(( $(date +%s) - START ))s"
 

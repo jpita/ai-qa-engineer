@@ -10,7 +10,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 TIMEOUT="${TIMEOUT:-420}"   # cold npx fetch + browser launch is slow the first time
 AGENTS=("${1:-all}")
-[ "${AGENTS[0]}" = "all" ] && AGENTS=(claude codex grok kimi deepseek antigravity)
+[ "${AGENTS[0]}" = "all" ] && AGENTS=(claude codex grok kimi deepseek antigravity copilot)
 
 # The app must be up or every agent fails for the same uninteresting reason.
 code=$(curl -sS -o /dev/null -m5 -w '%{http_code}' "$BASE_URL/" 2>/dev/null)
@@ -42,12 +42,14 @@ for a in "${AGENTS[@]}"; do
     kimi)        MODEL="$MODEL_KIMI" ;;
     deepseek)    MODEL="$MODEL_DEEPSEEK" ;;
     antigravity) MODEL="$MODEL_ANTIGRAVITY" ;;
+    copilot)     MODEL="$MODEL_COPILOT" ;;
     *) echo "unknown agent: $a" >&2; fail=1; continue ;;
   esac
-  if [ -z "$MODEL" ]; then
+  if [ -z "$MODEL" ] && [ "$a" != "copilot" ]; then
     printf '  %-9s %-22s no model set in scripts/models.env - skipped\n' "$a" ""
     fail=1; continue
   fi
+  [ "$a" = "copilot" ] && MODEL="copilot-default"
   printf '  %-9s %-22s ' "$a" "$MODEL"
   case "$a" in
     claude)   out=$(cap claude -p "$PROMPT" --model "$MODEL" --strict-mcp-config \
@@ -61,6 +63,8 @@ for a in "${AGENTS[@]}"; do
     deepseek) out=$(cap reasonix -p "$PROMPT" --model "$MODEL" -y </dev/null) ;;
     antigravity) out=$(cap "$HOME/.local/bin/agy" -p "$PROMPT" --model "$MODEL" \
                 --effort "$ANTIGRAVITY_EFFORT" --dangerously-skip-permissions </dev/null) ;;
+    copilot)  out=$(cap copilot -p "$PROMPT" --additional-mcp-config "@$PW_CFG" \
+                --allow-all-tools --allow-all-urls </dev/null) ;;
     *) echo "unknown agent"; fail=1; continue ;;
   esac
   if printf '%s' "$out" | grep -qF "$EXPECT"; then
