@@ -12,7 +12,7 @@ This project gives that job to an AI coding agent, such as Claude Code.
 
 You give it a website and the website's code.
 
-It finds every feature in the code, tests each one the way a person would, and gives you a bug report.
+It finds every feature in the code, writes a test plan, runs every test case the way a person would, and gives you a report.
 
 It reports a bug only after it makes the bug happen again, so the report has no guesses.
 
@@ -38,16 +38,18 @@ Each bug in the report has the steps to make it happen again, what should happen
 ```mermaid
 flowchart LR
   A["1. Read the code"] --> B["2. List every feature"]
-  B --> C["3. Test each one<br/>in a real browser"]
-  C --> D["4. Repeat each bug<br/>to prove it"]
-  D --> E["5. Write the<br/>bug report"]
+  B --> P["3. Write the<br/>test plan"]
+  P --> C["4. Run each test<br/>in a real browser"]
+  C --> D["5. Repeat each bug<br/>to prove it"]
+  D --> E["6. Write the<br/>report"]
 ```
 
 1. **Read the code.** It reads the code for the screens and for the server behind them.
 2. **List every feature.** It makes a full list, so it knows what "done" means and can say what it did not test.
-3. **Test each one.** It opens a real browser, clicks and types like a user, and also tries empty fields, wrong values and duplicates.
-4. **Prove each bug.** It keeps a bug only if it can make it happen again, and saves a screenshot.
-5. **Write the report.** One web page, with a table of every bug and full detail for each one.
+3. **Write the test plan.** One test case per thing to check, with steps, the expected result and a risk level. It covers normal use, empty fields, wrong values and duplicates.
+4. **Run each test.** It opens a real browser, clicks and types like a user, and marks each test case pass or fail.
+5. **Prove each bug.** It keeps a bug only if it can make it happen again, and saves a screenshot.
+6. **Write the report.** One web page: the test plan with each result, then full detail for each bug.
 
 ## What is in this repo
 
@@ -100,6 +102,7 @@ Full setup, including the Playwright browser: [Quickstart](docs/QUICKSTART.md).
 
 ## What a run writes
 
+- `test-plan.json`: every test case, with steps, expected result, risk level and the result.
 - `findings.json`: one entry per bug, with steps, expected and actual result, API calls and screenshot.
 - `coverage.json`: one row per backend route, with the result or the reason it was not tested.
 - `bug-report-<timestamp>-<model>.html`: the report, one file with the screenshots inside.
