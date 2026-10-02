@@ -1,25 +1,70 @@
 # ai-qa-engineer
 
-**An AI agent that tests a web app the way a QA engineer does, and reports only the bugs it proved.**
+**An AI agent that does the job of a QA tester: it tests a website and writes up every bug it finds.**
 
-Give it a running app and its source code.
-It reads the code, lists every feature and API route, and tests each one in a real browser.
-You get back one HTML bug report: repro steps, screenshots and the exact API calls for every bug.
+## What it does, in plain words
 
-[![Bug report summary: 11 bugs found in Conduit](docs/images/bug-report-summary.png)](examples/conduit)
+Before a website goes live, a QA tester checks that every feature works.
 
-<sub>A real run against [Conduit](https://github.com/TonyMckes/conduit-realworld-example-app), the RealWorld demo app: 11 functional bugs, 4 of them high severity, all 21 backend routes covered. [Open the full report](examples/conduit).</sub>
+They click through every screen, try wrong input on purpose, and write a report for each bug they find.
 
-## What makes it different
+This project gives that job to an AI coding agent, such as Claude Code.
 
-- **Proof, not guesses.** A bug is reported only if the agent reproduced it live on the running app.
-- **Full coverage, with a count.** It counts every route the server registers. Each route gets a result, or a reason it could not be tested.
-- **The UI and the API, both.** A green API call does not prove the screen sends that call. It tests both layers.
-- **Any agent.** The skill is one Markdown file. It runs on Claude Code, Codex, Grok, Kimi, DeepSeek and Antigravity.
+You give it a website and the website's code.
 
-## Every bug comes with evidence
+It finds every feature in the code, tests each one the way a person would, and gives you a bug report.
 
-<img src="docs/images/bug-report-card.png" alt="One bug card: steps, API calls, expected, observed, screenshot" width="720">
+It reports a bug only after it makes the bug happen again, so the report has no guesses.
+
+## Example: 11 real bugs in a demo blog site
+
+I ran it on [Conduit](https://github.com/TonyMckes/conduit-realworld-example-app), a public demo blog site that developers use for practice.
+
+It found 11 bugs. The four most serious:
+
+- If you save your profile and leave the password box empty, your password stops working.
+- If you publish an article with no tags, the site crashes and the article list breaks for every user.
+- Two people can sign up with the same username.
+- If you rename an article to the same title as another article, one of them can no longer be opened.
+
+[![The bug report: a table of the 11 bugs, ranked by severity](docs/images/bug-report-summary.png)](examples/conduit)
+
+Each bug in the report has the steps to make it happen again, what should happen, what happens instead, and a screenshot:
+
+<img src="docs/images/bug-report-card.png" alt="One bug from the report: steps, expected result, actual result, screenshot" width="720">
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["1. Read the code"] --> B["2. List every feature"]
+  B --> C["3. Test each one<br/>in a real browser"]
+  C --> D["4. Repeat each bug<br/>to prove it"]
+  D --> E["5. Write the<br/>bug report"]
+```
+
+1. **Read the code.** It reads the code for the screens and for the server behind them.
+2. **List every feature.** It makes a full list, so it knows what "done" means and can say what it did not test.
+3. **Test each one.** It opens a real browser, clicks and types like a user, and also tries empty fields, wrong values and duplicates.
+4. **Prove each bug.** It keeps a bug only if it can make it happen again, and saves a screenshot.
+5. **Write the report.** One web page, with a table of every bug and full detail for each one.
+
+## What is in this repo
+
+| Part | What it is |
+| --- | --- |
+| [`SKILL.md`](SKILL.md) | The instructions the AI agent follows. Plain English. This is the core of the project. |
+| [`scripts/`](scripts) | Helper code: builds the bug report, scans the website, checks which features were tested. |
+| [`examples/`](examples) | Two real runs, with all their output. |
+| [`docs/`](docs) | Setup guides. |
+
+It works with 7 AI agents: Claude Code, Codex, Grok, Kimi, DeepSeek, Antigravity and Copilot.
+
+The same instructions go to each one, so you can compare which agent finds the most bugs.
+
+---
+
+*The rest of this page is for engineers who want to run it.*
 
 ## Quickstart
 
@@ -45,20 +90,22 @@ Run it. The app and the source can each be local or remote:
 ```
 
 Other agents: paste [SKILL.md](SKILL.md) into the prompt.
+
 Full setup, including the Playwright browser: [Quickstart](docs/QUICKSTART.md).
 
 > [!WARNING]
 > The agent runs with your shell and your permissions.
+>
 > Run it against a throwaway app, or [sandbox it](docs/SANDBOX-MACOS.md).
 
-## How it works
+## What a run writes
 
-1. **Read.** It reads the frontend and backend and lists every route. That list is the coverage target.
-2. **Test.** For each feature it runs the happy path, bad input, edge cases and a reload check, in a real browser.
-3. **Prove.** It keeps only the bugs it reproduced, with a screenshot and the captured requests.
-4. **Report.** It writes `findings.json`, `coverage.json` and one self-contained HTML report.
+- `findings.json`: one entry per bug, with steps, expected and actual result, API calls and screenshot.
+- `coverage.json`: one row per backend route, with the result or the reason it was not tested.
+- `bug-report-<timestamp>-<model>.html`: the report, one file with the screenshots inside.
 
 Scope is functional bugs: wrong results, lost data, crashes, bad error handling.
+
 It is not a security scanner.
 
 ## Design decisions
@@ -74,6 +121,7 @@ It is not a security scanner.
 | validate every output against a schema | |
 
 An LLM doing the crawl is slow and unreliable.
+
 Code doing the triage gives you the noise most generated test suites are made of.
 
 **Three test layers.**
@@ -85,10 +133,13 @@ Code doing the triage gives you the noise most generated test suites are made of
 | `ui_mocked` | drives the browser, fakes the response | a 500, an empty list, a malformed body |
 
 Every endpoint with a screen in front of it is tested at both the API and the UI layer.
+
 If the plan covers only one, the report says so.
 
 **Triage has four answers.** Each failure is one of: app broken, test broken, environment not ready, or not enough evidence.
+
 Each gets a verdict, the evidence and a confidence level.
+
 `inconclusive` is a valid answer.
 
 **No retries, no invented timeouts.** A retry hides the signal triage needs. A timeout is raised only with a measured number.
