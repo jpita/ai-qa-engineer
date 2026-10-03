@@ -2,12 +2,21 @@
 
 Point an agent at a running app, get back a bug report with screenshots and repro steps.
 
+## Choose a workflow
+
+| Goal | Start here |
+| --- | --- |
+| Test your own app and produce a full QA report | Follow this guide below. |
+| Check the eval without calling a model | Install the repo dependencies and Playwright Chromium, then run `npm run eval:demo`. See [EVALS.md](EVALS.md). |
+| Score a local agent on the broken/fixed QA tasks | [Local eval runner](EVALS.md#run-a-real-agent). |
+| Compare Claude Code and Codex in fresh Docker containers | [Harbor setup and comparisons](HARBOR.md). |
+
 ## Requirements
 
 - Node 20+
-- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi, DeepSeek (the `reasonix` CLI) and Antigravity (`agy`) all work — the skill is plain markdown.
-- A Playwright MCP browser wired into it. Not optional; without a browser the agent guesses at the UI from source.
-- Docker with Compose v2, only if you use `npm run app:up` for Juice Shop.
+- An agent CLI you are logged into. Claude Code, Codex, Grok, Kimi, DeepSeek (the `reasonix` CLI), Antigravity (`agy`) and Copilot can use the skill — it is plain markdown.
+- A real browser. The full-site commands below use Playwright MCP; the focused evals execute Playwright code directly and do not require MCP setup.
+- Docker with Compose v2 if you use `npm run app:up` for Juice Shop. Harbor additionally needs Buildx and the [pinned Harbor runner](HARBOR.md#setup). The local eval needs no Docker.
 - This repo cloned with `npm install` run in it, if you want the `npm run *` helpers.
 
 ## 1. Wire the browser
@@ -128,6 +137,8 @@ One-shot is the intended mode.
 
 The filename carries the timestamp and model so runs stay comparable.
 
+Focused evals instead write `result.json`, `findings.json` and a screenshot per trial, plus runner-generated grades and timing data. They do not create the full-site test plan or bug report. See the [eval output contract](EVALS.md#trial-artifacts).
+
 ## Checking the run
 
 Coverage rows must equal the routes the server registers:
@@ -153,7 +164,9 @@ routes built dynamically. The real denominator comes from reading the route file
 | Grok exits clean, no output | add `--always-approve --no-plan` |
 | Empty report | curl the URL yourself; the app was probably down |
 
-## Comparing agents
+## Comparing full-site runs
+
+Use [EVALS.md](EVALS.md) or [HARBOR.md](HARBOR.md) for a scored comparison against known broken/fixed behavior. The launcher below collects full-site QA reports for manual comparison; it does not grade them against known answers.
 
 For a run across several agents, `scripts/run-agent.sh` does what step 3 does by
 hand, plus a per-agent sandbox (see [SANDBOX-MACOS.md](SANDBOX-MACOS.md)).
@@ -162,10 +175,7 @@ hand, plus a per-agent sandbox (see [SANDBOX-MACOS.md](SANDBOX-MACOS.md)).
 BASE_URL=http://localhost:3000 APP_NAME=conduit ./scripts/run-agent.sh claude
 ```
 
-Every model is pinned in one file, `scripts/models.env`, and sent explicitly with
-`-m`/`--model` to each CLI. Never rely on a CLI's own default: it can change between
-two runs with no warning, which breaks a comparison silently and mislabels every
-report with the wrong model. Edit `scripts/models.env` to set the tier.
+The full-site launcher reads model selections from [`scripts/models.env`](../scripts/models.env). Choose IDs supported by your CLI and account, and confirm the model actually served in the logs. Automatic selections and provider aliases are not immutable model versions. Harbor's eval comparison has its own portable defaults and environment overrides, documented in [HARBOR.md](HARBOR.md#compare-agents).
 
 Before a comparison run, prove every agent can actually reach its model and drive
 the browser:

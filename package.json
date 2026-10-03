@@ -14,7 +14,14 @@
     "app:down": "docker compose down -v",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "bug-report": "tsx scripts/bug-report.ts"
+    "eval:demo": "tsx scripts/evals/run.ts --demo",
+    "eval:run": "tsx scripts/evals/run.ts",
+    "bug-report": "tsx scripts/bug-report.ts",
+    "harbor:prepare": "tsx scripts/evals/harbor-prepare.ts",
+    "harbor:oracle": "npm run harbor:prepare && harbor run -p \"$PWD/runs/harbor/tasks\" -a oracle -n 1 -o \"$PWD/runs/harbor/jobs\"",
+    "harbor:nop": "npm run harbor:prepare && harbor run -p \"$PWD/runs/harbor/tasks\" -a nop -n 1 -o \"$PWD/runs/harbor/jobs\"",
+    "harbor:view": "harbor view runs/harbor/jobs --port 8080",
+    "harbor:compare": "bash scripts/evals/harbor-compare.sh"
   },
   "engines": {
     "node": ">=20"

@@ -8,7 +8,7 @@
 [![Playwright](https://img.shields.io/badge/browser-Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
 [![Agents](https://img.shields.io/badge/works%20with-7%20AI%20agents-8A2BE2)](#key-features)
 
-[Live example report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) · [How it works](#how-it-works) · [Quickstart](#quickstart)
+[Live example report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) · [How it works](#how-it-works) · [Quickstart](#quickstart) · [Evaluate agents](#evaluate-agents)
 
 </div>
 
@@ -26,6 +26,8 @@ It gives you back:
 3. **A coverage list.** Every server route, and whether it was tested.
 4. **Automated tests, when you ask.** Playwright or Cypress tests, your choice, for every bug and every high-risk test case, so you can run them again after every change.
 
+The repo also includes an evaluation of the agent itself: can it prove persistence and calculation bugs, and correctly recognize their fixed versions? Run it locally or in Docker with [Harbor](docs/HARBOR.md).
+
 [![The bug report: 11 bugs ranked by severity](docs/images/bug-report-summary.png)](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html)
 
 ## Key features
@@ -36,6 +38,7 @@ It gives you back:
 - **Tries to break things.** Empty fields, wrong values, duplicates, page reloads.
 - **Writes automated tests.** In Playwright or Cypress. It turns bugs and high-risk cases into tests, runs them, and sorts every failure: app bug, test bug, setup problem, or not enough evidence. [See 39 example tests](examples/juice-shop/specs).
 - **Works with any AI agent.** Claude Code, Codex, Grok, Kimi, DeepSeek, Antigravity and Copilot.
+- **Checks the tester.** A repeatable broken/fixed task scores the agent's diagnosis, browser evidence and findings. Harbor runs each trial in a fresh container and provides a results viewer.
 
 ## Example: 11 bugs in a demo blog
 
@@ -127,16 +130,48 @@ Using another agent? Paste [SKILL.md](SKILL.md) into its prompt. Setup for each 
 >
 > Test a throwaway app, or [sandbox the agent](docs/SANDBOX-MACOS.md).
 
+## Evaluate agents
+
+Two synthetic tasks check the agent itself:
+
+- **Profile persistence:** prove that a saved bio survives a reload.
+- **Silent calculation:** check a match score independently when list and text inputs should give the same answer—even if every request succeeds.
+
+Each task has broken and fixed variants with fresh state. Passing requires the correct conclusion, recorded browser activity, matching findings and a screenshot. The default demo runs all four trials; add `-- --task calculation` to run only the new task.
+
+After installing the repo dependencies and Playwright Chromium, try the scripted reference:
+
+```bash
+npm run eval:demo
+```
+
+Open the printed `report.html` path to inspect scores, timings and evidence. This calls no model; a passing demo verifies the evaluation machinery, not AI performance.
+
+| Workflow | Command | Guide |
+| --- | --- | --- |
+| Evaluate a local agent CLI | `npm run eval:run -- --agent NAME --model ID --command 'COMMAND'` | [Local eval setup and scoring](docs/EVALS.md) |
+| Check the Docker tasks without model calls | `npm run harbor:oracle` and `npm run harbor:nop` | [Harbor setup](docs/HARBOR.md#setup) |
+| Compare Claude Code and Codex in Docker | `npm run harbor:compare` | [Authentication and comparison options](docs/HARBOR.md#compare-agents) |
+| Browse Harbor jobs, evidence and timings | `npm run harbor:view` | [Reading Harbor results](docs/HARBOR.md#results-and-timing) |
+
+Harbor requires its own installation and a working Docker environment. Its comparison defaults to three attempts per task and state for each agent: 24 trials. Local eval output goes to `runs/evals/`; Harbor tasks and jobs go to `runs/harbor/`. Both are ignored by Git.
+
+These measure two focused QA behaviors. It does not yet score full-site coverage, report quality or generated regression tests, and is not a broad ranking of QA agents.
+
 ## What is in this repo
 
 | Folder | What it is |
 | --- | --- |
 | [`SKILL.md`](SKILL.md) | The instructions the AI agent follows. The core of the project. |
 | [`scripts/`](scripts) | Helper code: builds the report, scans the website, checks coverage. |
+| [`scripts/evals/`](scripts/evals) | Broken/fixed fixture, browser reference, grader, local runner and Harbor task generator. |
+| [`tests/`](tests) | Automated checks for coverage logic, eval grading, fixture behavior and timing summaries. |
 | [`examples/`](examples) | Two real runs, with all their output. |
-| [`docs/`](docs) | Setup and sandbox guides. |
+| [`docs/`](docs) | Setup, evaluation, Harbor and sandbox guides. |
 
-## Files a run writes
+## Files a full QA run writes
+
+These are the full-site skill outputs. Focused evals use the smaller [eval artifact contract](docs/EVALS.md#trial-artifacts).
 
 | File | What is in it |
 | --- | --- |
@@ -187,6 +222,8 @@ Using another agent? Paste [SKILL.md](SKILL.md) into its prompt. Setup for each 
 
 ## Docs
 
+- [Evaluation guide](docs/EVALS.md): local runs, output contract, grading, scores and timing
+- [Harbor guide](docs/HARBOR.md): Docker setup, authentication, agent comparisons and results viewer
 - [Full setup guide](docs/QUICKSTART.md): every agent, test apps, comparing agents
 - [Sandbox guide](docs/SANDBOX-MACOS.md): keep an agent away from your passwords and keys (macOS)
 - [SKILL.md](SKILL.md): the full instructions the agent follows

@@ -1,8 +1,18 @@
 # Sandboxing agents (macOS)
 
-Run several vendors' agent CLIs against a target app without giving any of them your credentials.
+Run several vendors' agent CLIs against a target app while limiting access to other agents' credentials and selected private files. Each agent still needs its own authentication.
 
 macOS only — the mechanism is `sandbox-exec`. Linux equivalents at the bottom.
+
+## Which runner uses this sandbox?
+
+| Runner | Isolation |
+| --- | --- |
+| `scripts/run-agent.sh` | Uses this macOS sandbox by default; `NO_SANDBOX=1` disables it. |
+| `npm run eval:run` | Fresh trial folders and app state, with the launching user's host permissions. It does not invoke this sandbox. |
+| `npm run harbor:compare` | Fresh Docker containers, with an unprivileged agent and a separate root-owned app/event log. It does not use `sandbox-exec`. |
+
+For the container workflow, see [Harbor setup and authentication](HARBOR.md). Its wrapper passes the selected provider credentials into the temporary environment; it does not mount your home directory. Container isolation does not make the grader tamper-proof—see the [evaluation limits](EVALS.md#limits).
 
 ## Why
 
