@@ -75,9 +75,8 @@ case "$AGENT" in
     echo "(deny file-read* (subpath \"$H/.codex/history\"))"
     ;;
   grok)
-    echo ";; ---- 2. grok needs its dir for the binary + MCP config; token stays denied ----"
+    echo ";; ---- 2. grok own binary, MCP config and native login token ----"
     echo "(allow file-read* file-write* process-exec (subpath \"$H/.grok\"))"
-    echo "(deny file-read* (literal \"$H/.grok/auth.json\"))"
     ;;
   kimi)
     echo ";; ---- 2. kimi's own home (binary lives here too) ----"

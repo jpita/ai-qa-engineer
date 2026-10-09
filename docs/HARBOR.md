@@ -74,14 +74,14 @@ The wrapper has portable defaults, independent of the local full-site model cata
 
 | Agent | Environment override | Repository default |
 | --- | --- | --- |
-| Claude Code | `MODEL_CLAUDE` | `claude-haiku-4-5-20251001` |
+| Claude Code | `MODEL_CLAUDE` | `claude-haiku-5-5` |
 | Codex | `MODEL_CODEX` | `gpt-6-luna` |
 
 Export either override before running the comparison to choose another model supported by your provider account. Use the plain model ID: the wrapper adds `anthropic/` or `openai/` for Harbor. These defaults are configuration choices, not measured claims about which model is best.
 
 The wrapper regenerates `runs/harbor/compare.json` on each invocation and forwards extra arguments to `harbor run`. Change defaults in the wrapper or use CLI overrides; edits to that generated config will be overwritten.
 
-The task image preinstalls Claude Code **2.1.287** and Codex **0.160.0**, and the comparison requests those same CLI versions. These are separate from host-installed CLIs. Preinstallation avoids Harbor's apt-based Node/npm setup conflicting with the Playwright image's NodeSource packages. Keep the image and wrapper version pins aligned when updating them.
+The task image preinstalls Claude Code **2.1.289** and Codex **0.160.0**, and the comparison requests those same CLI versions. These are separate from host-installed CLIs. Preinstallation avoids Harbor's apt-based Node/npm setup conflicting with the Playwright image's NodeSource packages. Keep the image and wrapper version pins aligned when updating them.
 
 Model identifiers are requested configuration; confirm the served model in the transcript/provider metadata. Comparisons use your model quota or API billing. Subscription usage may not yield an accurate dollar cost.
 

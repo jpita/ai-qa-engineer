@@ -55,7 +55,7 @@ start(event => appendFileSync('/var/lib/qa-eval/events.jsonl', JSON.stringify(ev
   await put('environment/Dockerfile', `FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
 USER root
 RUN mkdir -p /opt/qa && cd /opt/qa && npm init -y && npm install --save-exact playwright@1.62.1 tsx@4.23.13 zod@4.5.4
-RUN npm install -g @openai/codex@0.160.0 @anthropic-ai/claude-code@2.1.287
+RUN npm install -g @openai/codex@0.160.0 @anthropic-ai/claude-code@2.1.289
 RUN useradd -m -s /bin/bash agent && mkdir -p /app/source /app/output /var/lib/qa-eval && chmod 700 /var/lib/qa-eval && chown agent:agent /app/output && ln -s /opt/qa/node_modules /app/node_modules
 COPY app.mjs /app/source/app.mjs
 COPY SKILL.md /app/SKILL.md

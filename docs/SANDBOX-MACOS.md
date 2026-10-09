@@ -85,7 +85,7 @@ Or `BASE_URL=http://localhost:3000 ./scripts/run-agent.sh claude`, which generat
 | Bug | Fix |
 | --- | --- |
 | Chromium cannot nest inside `sandbox-exec` (`Target crashed`) | `--no-sandbox` on the Playwright MCP; it is already inside the outer sandbox |
-| Grok's binary lives in `~/.grok`, so a blanket deny gives `execvp() Operation not permitted` | allow the dir with `process-exec`, deny `~/.grok/auth.json` alone |
+| Grok's binary lives in `~/.grok`, so a blanket deny gives `execvp() Operation not permitted` | allow its own directory with `process-exec`, including `auth.json` for native Grok login; direct API aliases still require `XAI_API_KEY` |
 | Reasonix ignores `DEEPSEEK_API_KEY` in the environment | it reads `~/.reasonix/.env` |
 | macOS caps unix socket paths at 104 chars; long MCP state paths fail like a denial | `export PWTEST_SOCKETS_DIR=/tmp/pw` |
 

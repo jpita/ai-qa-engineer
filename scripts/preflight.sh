@@ -49,8 +49,8 @@ for a in "${AGENTS[@]}"; do
     printf '  %-9s %-22s no model set in scripts/models.env - skipped\n' "$a" ""
     fail=1; continue
   fi
-  [ "$a" = "copilot" ] && MODEL="copilot-default"
-  printf '  %-9s %-22s ' "$a" "$MODEL"
+  COPILOT_MODEL_ARGS=(--model "${MODEL:-auto}")
+  printf '  %-9s %-22s ' "$a" "${MODEL:-copilot-auto}"
   case "$a" in
     claude)   out=$(cap claude -p "$PROMPT" --model "$MODEL" --strict-mcp-config \
                 --mcp-config "$PW_CFG" --permission-mode bypassPermissions </dev/null) ;;
@@ -59,20 +59,21 @@ for a in "${AGENTS[@]}"; do
                 -c 'mcp_servers.playwright.args=["-y","@playwright/mcp@latest","--headless","--isolated","--no-sandbox"]' \
                 -m "$MODEL" "$PROMPT" </dev/null) ;;
     grok)     out=$(cap env XAI_API_KEY="${XAI_API_KEY:-}" grok -p "$PROMPT" -m "$MODEL" --always-approve --no-plan </dev/null) ;;
-    kimi)     out=$(cap "$HOME/.kimi-code/bin/kimi" -p "$PROMPT" -m "$MODEL" </dev/null) ;;
+    kimi)     out=$(cap "${KIMI_BIN:-$HOME/.kimi-code/bin/kimi}" -p "$PROMPT" -m "$MODEL" </dev/null) ;;
     deepseek) out=$(cap reasonix -p "$PROMPT" --model "$MODEL" -y </dev/null) ;;
-    antigravity) out=$(cap "$HOME/.local/bin/agy" -p "$PROMPT" --model "$MODEL" \
+    antigravity) out=$(cap "${ANTIGRAVITY_BIN:-$HOME/.local/bin/agy}" -p "$PROMPT" --model "$MODEL" \
                 --effort "$ANTIGRAVITY_EFFORT" --dangerously-skip-permissions </dev/null) ;;
-    copilot)  out=$(cap copilot -p "$PROMPT" --additional-mcp-config "@$PW_CFG" \
+    copilot)  out=$(cap copilot -p "$PROMPT" "${COPILOT_MODEL_ARGS[@]}" --additional-mcp-config "@$PW_CFG" \
                 --allow-all-tools --allow-all-urls </dev/null) ;;
     *) echo "unknown agent"; fail=1; continue ;;
   esac
-  if printf '%s' "$out" | grep -qF "$EXPECT"; then
+  agent_status=$?
+  if [ "$agent_status" -eq 0 ] && printf '%s' "$out" | grep -qF "$EXPECT"; then
     echo "ok - drove the browser and read \"$EXPECT\""
   else
     fail=1
     if printf '%s' "$out" | grep -qiE 'alarm|^$'; then :; fi
-    echo "FAILED"
+    echo "FAILED (exit $agent_status)"
     diag=$(printf '%s\n' "$out" | grep -iE 'error|not found|denied|unauthor|missing|refused|timed out' | head -2)
     # no recognisable error usually means it was still working when the clock ran out
     [ -z "$diag" ] && diag=$(printf '%s\n' "$out" | tail -3)

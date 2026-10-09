@@ -19,6 +19,38 @@ Point an agent at a running app, get back a bug report with screenshots and repr
 - Docker with Compose v2 if you use `npm run app:up` for Juice Shop. Harbor additionally needs Buildx and the [pinned Harbor runner](HARBOR.md#setup). The local eval needs no Docker.
 - This repo cloned with `npm install` run in it, if you want the `npm run *` helpers.
 
+## Agent and model snapshot
+
+Checked 9 October 2026 against installed CLIs and the latest
+[job toolkit evaluations](https://github.com/jpita/job-hunt-kit-template/blob/4582b18/evals/BENCHMARKS.md).
+These are observed host versions, not automatic installation pins.
+
+| Agent | Observed CLI version | Full-site default selector |
+| --- | --- | --- |
+| Claude Code | `2.1.289` | `claude-haiku-5-5` |
+| Codex | `0.160.0` | `gpt-6-luna` |
+| Grok Build | `1.0.46` | `grok-4.7` |
+| Kimi Code | `0.40.1` | `moonshotai/kimi-k3` |
+| DeepSeek / Reasonix | `1.36.0` | `deepseek-pro` → `deepseek-v4-pro` |
+| Antigravity | `1.2.14` | `gemini-3.8-flash-low`, low effort |
+| GitHub Copilot | `1.0.93-1` | `auto` |
+
+The toolkit evaluated text classification, not browser QA. Gemini has no completed
+result there. Reasonix Pro produced ten valid answers but reported successful
+completion on only four; Flash's compatibility check returned exit 1. Both
+launchers preserve command failure even when output looks correct. A successful
+launcher exit alone still does not validate QA artifacts.
+
+Copilot Auto served Luna in one toolkit check; it can choose another model on the
+next run. Kimi needs the provider prefix, and Reasonix needs its configured alias.
+Confirm the served model in logs and run the browser preflight before a comparison.
+Model overrides such as `MODEL_CLAUDE=claude-sonnet-5-5` are preserved.
+`KIMI_BIN` and `ANTIGRAVITY_BIN` can override the launchers' executable paths.
+Reasoning settings are CLI defaults unless explicitly passed, except Antigravity's
+configured effort. The toolkit's verified low-effort runs are not reproduced by
+changing a model selector alone. See [official Codex configuration](https://developers.openai.com/codex/config-reference)
+and [Claude model configuration](https://code.claude.com/docs/en/model-config).
+
 ## 1. Wire the browser
 
 ```bash
@@ -101,16 +133,16 @@ The running app is at: $APP
 The app source is at: $SRC
 Read the source to enumerate every backend route. That count is your coverage denominator.
 Use HTTP for the API layer and the Playwright MCP browser for the UI layer.
-You are running as model: claude-sonnet-5
+Requested model selector: claude-haiku-5-5
 Write test-plan.json first, then findings.json and coverage.json here, screenshot each bug, then build the Stage 6 report.
 
 ===== SKILL =====
 $SKILL"
 
-claude -p "$TASK" --model sonnet --effort xhigh --permission-mode bypassPermissions
+claude -p "$TASK" --model claude-haiku-5-5 --effort high --permission-mode bypassPermissions
 ```
 
-`--effort xhigh` buys more reasoning per step. A thorough run is long: it reads the
+`--effort high` buys more reasoning per step. A thorough run is long: it reads the
 whole codebase and exercises every route, so expect it to keep working for a while.
 
 If the app proxies its API through the frontend port (Conduit does: Vite forwards
@@ -118,11 +150,12 @@ If the app proxies its API through the frontend port (Conduit does: Vite forward
 
 | CLI | Command |
 | --- | --- |
-| Codex | `codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox -m gpt-5.6-terra -c model_reasoning_effort=high "$TASK"` |
-| Grok | `grok -p "$TASK" -m grok-4.3 --always-approve --no-plan` |
-| Kimi | `~/.kimi-code/bin/kimi -p "$TASK" -m kimi-k2.7-code` |
-| DeepSeek | `reasonix -p "$TASK"` |
-| Antigravity | `agy -p "$TASK" --dangerously-skip-permissions` |
+| Codex | `codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox -m gpt-6-luna -c model_reasoning_effort=high "$TASK"` |
+| Grok | `grok -p "$TASK" -m grok-4.7 --always-approve --no-plan` |
+| Kimi | `~/.kimi-code/bin/kimi -p "$TASK" -m moonshotai/kimi-k3` |
+| DeepSeek | `reasonix -p "$TASK" --model deepseek-pro` |
+| Antigravity | `agy -p "$TASK" --model gemini-3.8-flash-low --effort low --dangerously-skip-permissions` |
+| Copilot | `copilot -p "$TASK" --model auto --allow-all-tools --allow-all-urls` |
 
 One-shot is the intended mode.
 

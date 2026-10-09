@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 # Public defaults are independent of the operator's personal CLI catalog.
-MODEL_CLAUDE="${MODEL_CLAUDE:-claude-haiku-4-5-20251001}"
+MODEL_CLAUDE="${MODEL_CLAUDE:-claude-haiku-5-5}"
 MODEL_CODEX="${MODEL_CODEX:-gpt-6-luna}"
 # Harbor supports explicit subscription auth for Codex. Never copy whole homes.
 if [[ -z "${OPENAI_API_KEY:-}" && -f "${CODEX_AUTH_JSON_PATH:-$HOME/.codex/auth.json}" ]]; then
@@ -27,7 +27,7 @@ writeFileSync('runs/harbor/compare.json', JSON.stringify({
   n_concurrent_trials: 1,
   datasets: [{path: process.cwd() + '/runs/harbor/tasks'}],
   agents: [
-    {name: 'claude-code', model_name: 'anthropic/' + process.env.MODEL_CLAUDE, kwargs: {version: '2.1.287'}},
+    {name: 'claude-code', model_name: 'anthropic/' + process.env.MODEL_CLAUDE, kwargs: {version: '2.1.289'}},
     {name: 'codex', model_name: 'openai/' + process.env.MODEL_CODEX, kwargs: {version: '0.160.0'}},
   ],
 }, null, 2));

@@ -46,7 +46,7 @@ Example for an installed and authenticated Claude Code CLI:
 ```bash
 npm run eval:run -- \
   --task calculation \
-  --agent claude --model claude-haiku-4-5-20251001 \
+  --agent claude --model claude-haiku-5-5 \
   --timeout 180 \
   --command 'claude -p "$(cat "$QA_EVAL_PROMPT_FILE")" --model "$QA_EVAL_MODEL" --tools Read,Write,Bash --allowedTools Read Write Bash --strict-mcp-config --setting-sources "" --no-session-persistence --output-format json'
 ```

@@ -2,7 +2,7 @@
 # run-agent.sh — run one AI coding agent against a running app with the QA skill,
 # inside a macOS sandbox that blocks every credential except the agent's own.
 #
-#   usage: BASE_URL=http://localhost:3000 ./run-agent.sh <claude|codex|grok|kimi|deepseek>
+#   usage: BASE_URL=http://localhost:3000 ./run-agent.sh <claude|codex|grok|kimi|deepseek|antigravity|copilot>
 #
 # env:
 #   BASE_URL     the running app to test          (default http://localhost:3000)
@@ -12,7 +12,7 @@
 #   EXTRA_DENY   extra paths to block, colon-separated
 #   NO_SANDBOX=1 skip the sandbox (see docs/QUICKSTART.md)
 set -uo pipefail
-AGENT="${1:?usage: run-agent.sh <claude|codex|grok|kimi|deepseek|antigravity>}"
+AGENT="${1:?usage: run-agent.sh <claude|codex|grok|kimi|deepseek|antigravity|copilot>}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 APP_NAME="${APP_NAME:-app}"
@@ -37,13 +37,14 @@ case "$AGENT" in
   antigravity) MODEL="$MODEL_ANTIGRAVITY" ;;
   copilot)     MODEL="$MODEL_COPILOT" ;;
 esac
-# copilot has no --model that this account's plan accepts (confirmed 04-09-2026) -- it
-# always runs its own unpinned default, so it is the one agent allowed an empty MODEL.
-if [ "$AGENT" != "copilot" ]; then
+# Copilot Auto is unpinned. Honor an explicit account-supported selection
+# rather than silently discarding MODEL_COPILOT.
+COPILOT_MODEL_ARGS=(--model "${MODEL:-auto}")
+if [ "$AGENT" != "copilot" ] || [ -n "$MODEL" ]; then
   [ -n "$MODEL" ] || { echo "no model set for $AGENT in scripts/models.env" >&2; exit 1; }
   MODEL_LABEL="$MODEL"
 else
-  MODEL_LABEL="copilot-default"
+  MODEL_LABEL="copilot-auto"
 fi
 
 mkdir -p "$OUT_DIR"
@@ -59,7 +60,7 @@ log "app up at $BASE_URL"
 SKILL="$(cat "$SKILL_FILE")"
 TASK="Follow the QA skill below EXACTLY. Target the running app at BASE_URL: $BASE_URL
 Use plain HTTP for the API layer and the Playwright MCP browser for the UI layer.
-You are running as model: $MODEL_LABEL
+Requested model selector: $MODEL_LABEL (provider aliases and Auto may resolve to another model)
 FIND functional bugs (do not write or run regression specs; that is the optional later stage).
 Write test-plan.json before testing, then findings.json and coverage.json, in the current directory, in the shapes the skill describes -- capture a screenshot per bug and record the API calls as the skill requires.
 Then do the skill's Stage 6: build the single self-contained bug-report HTML, named with the timestamp and the model label \"$MODEL_LABEL\", for app \"$APP_NAME\".
@@ -69,7 +70,7 @@ When test-plan.json, findings.json, coverage.json and the bug-report HTML are wr
 $SKILL"
 
 # Every agent must have the SAME browser tool or the run measures the tooling.
-# Only claude takes an MCP config per invocation. codex, grok, kimi and deepseek read
+# Claude and Copilot take an MCP config per invocation. Other CLIs read
 # their own config files, so wire those up first (see docs/QUICKSTART.md step 1).
 # --no-sandbox is required: Chromium's own sandbox cannot nest inside sandbox-exec.
 PW_CFG="$REPO/scripts/pw-mcp.json"
@@ -103,26 +104,28 @@ case "$AGENT" in
     $SANDBOX codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox \
       -m "$MODEL" "$TASK" > run.log 2>&1 < /dev/null ;;
   grok)
-    # XAI_API_KEY must be exported before calling this script -- grok's session login
-    # only exposes grok-4.6, so a custom [model.*] entry in ~/.grok/config.toml routes
-    # other IDs straight to api.x.ai. Without the key it silently falls back to the
-    # session credential, which fails as "402 spending-limit" if that has no balance.
-    [ -n "${XAI_API_KEY:-}" ] || { echo "XAI_API_KEY is not set -- export it before running grok" >&2; exit 1; }
-    $SANDBOX env XAI_API_KEY="$XAI_API_KEY" grok -p "$TASK" -m "$MODEL" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
+    # The configured direct-API alias requires a key; native catalog models use
+    # Grok login instead. Do not require an API key for every native selection.
+    if [ "$MODEL" = "grok-4-3-direct" ] && [ -z "${XAI_API_KEY:-}" ]; then
+      echo "XAI_API_KEY is not set -- required for $MODEL" >&2; exit 1
+    fi
+    $SANDBOX env XAI_API_KEY="${XAI_API_KEY:-}" grok -p "$TASK" -m "$MODEL" --always-approve --no-plan > run.log 2>&1 < /dev/null ;;
   kimi)
-    $SANDBOX "$HOME/.kimi-code/bin/kimi" -p "$TASK" -m "$MODEL" > run.log 2>&1 < /dev/null ;;
+    $SANDBOX "${KIMI_BIN:-$HOME/.kimi-code/bin/kimi}" -p "$TASK" -m "$MODEL" > run.log 2>&1 < /dev/null ;;
   deepseek)
     $SANDBOX reasonix -p "$TASK" --model "$MODEL" -y > run.log 2>&1 < /dev/null ;;
   antigravity)
-    $SANDBOX "$HOME/.local/bin/agy" -p "$TASK" --model "$MODEL" --effort "$ANTIGRAVITY_EFFORT" \
+    $SANDBOX "${ANTIGRAVITY_BIN:-$HOME/.local/bin/agy}" -p "$TASK" --model "$MODEL" --effort "$ANTIGRAVITY_EFFORT" \
       --dangerously-skip-permissions > run.log 2>&1 < /dev/null ;;
   copilot)
-    $SANDBOX copilot -p "$TASK" --additional-mcp-config "@$PW_CFG" \
+    $SANDBOX copilot -p "$TASK" "${COPILOT_MODEL_ARGS[@]}" --additional-mcp-config "@$PW_CFG" \
       --allow-all-tools --allow-all-urls > run.log 2>&1 < /dev/null ;;
 esac
-log "run done in $(( $(date +%s) - START ))s"
+AGENT_STATUS=$?
+log "run done in $(( $(date +%s) - START ))s (exit $AGENT_STATUS)"
 
 F=$([ -f "$OUT_DIR/findings.json" ] && echo yes || echo NO)
 C=$([ -f "$OUT_DIR/coverage.json" ] && echo yes || echo NO)
 R=$(ls "$OUT_DIR"/bug-report-*.html 2>/dev/null | tail -1)
 log "findings.json=$F coverage.json=$C report=${R:-NONE}"
+exit "$AGENT_STATUS"
