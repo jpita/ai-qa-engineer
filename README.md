@@ -2,232 +2,205 @@
 
 # ai-qa-engineer
 
-**An AI agent that tests your website like a QA engineer, and reports only the bugs it can prove.**
+**A QA skill that helps coding agents test web apps and report bugs with evidence.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Playwright](https://img.shields.io/badge/browser-Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
-[![Agents](https://img.shields.io/badge/works%20with-7%20AI%20agents-8A2BE2)](#key-features)
+[![Agent launchers](https://img.shields.io/badge/agent%20launchers-7-8A2BE2)](#supported-agents)
 
-[Live example report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) · [How it works](#how-it-works) · [Quickstart](#quickstart) · [Evaluate agents](#evaluate-agents)
+[Example report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) · [Quickstart](#quickstart) · [Supported agents](#supported-agents) · [Evaluate an agent](#evaluate-an-agent)
 
 </div>
 
-## What it does
+Give your agent a web app and its source code. The skill guides it through reading
+the code, planning tests, checking browser flows and server responses, and writing
+a report with reproduction steps and screenshots.
 
-You give it two things:
+Use it to check sign-up, forms, search, saved data, calculations, and other features
+that should work for a user. It focuses on functional correctness. Security testing
+requires a separate workflow.
 
-- a website that is running
-- the website's code
+## What you get
 
-It gives you back:
+- **A test plan:** cases with inputs, actions, expected results, and risk levels.
+- **A bug report:** reproduced failures with expected and observed behavior,
+  screenshots, and relevant server requests.
+- **A coverage map:** backend routes tested and gaps that need attention.
+- **Regression tests, on request:** Playwright or Cypress tests for confirmed bugs
+  and high-risk cases, with evidence explaining failed tests.
 
-1. **A test plan.** Every test case, with steps, the expected result and a risk level.
-2. **A bug report.** Every bug, with steps to make it happen again, a screenshot and the server calls.
-3. **A coverage list.** Every server route, and whether it was tested.
-4. **Automated tests, when you ask.** Playwright or Cypress tests, your choice, for every bug and every high-risk test case, so you can run them again after every change.
+The skill requires the agent to reproduce a bug before reporting it. Review the
+report and its evidence to confirm that the conclusions match what was tested.
 
-The repo also includes an evaluation of the agent itself: can it prove persistence and calculation bugs, and correctly recognize their fixed versions? Run it locally or in Docker with [Harbor](docs/HARBOR.md).
-
-[![The bug report: 11 bugs ranked by severity](docs/images/bug-report-summary.png)](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html)
-
-## Key features
-
-- **Tests like a person.** It clicks and types in a real browser, not only in code.
-- **Proves every bug.** It reports a bug only after it makes the bug happen a second time.
-- **Covers everything.** It counts every feature in the code and says which ones it could not test.
-- **Tries to break things.** Empty fields, wrong values, duplicates, page reloads.
-- **Writes automated tests.** In Playwright or Cypress. It turns bugs and high-risk cases into tests, runs them, and sorts every failure: app bug, test bug, setup problem, or not enough evidence. [See 39 example tests](examples/juice-shop/specs).
-- **Works with any AI agent.** Claude Code, Codex, Grok, Kimi, DeepSeek, Antigravity and Copilot.
-- **Checks the tester.** A repeatable broken/fixed task scores the agent's diagnosis, browser evidence and findings. Harbor runs each trial in a fresh container and provides a results viewer.
-
-## Example: 11 bugs in a demo blog
-
-I ran it on [Conduit](https://github.com/TonyMckes/conduit-realworld-example-app), a public demo blog that developers use for practice.
-
-It tested all 21 server routes and found 11 bugs. The 4 most serious:
-
-1. Save your profile with the password box empty, and your password stops working.
-2. Publish an article with no tags, and the site crashes for every user.
-3. Two people can sign up with the same username.
-4. Rename an article to the title of another article, and one of them can no longer be opened.
-
-Each bug in the report looks like this. [Open the full report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html).
-
-<img src="docs/images/bug-report-card.png" alt="One bug from the report: steps, server calls, expected result, actual result, screenshot" width="720">
-
-## How it works
-
-```mermaid
-flowchart LR
-  A["1. Read the code"] --> B["2. List every feature"]
-  B --> P["3. Write the<br/>test plan"]
-  P --> C["4. Run each test<br/>in a real browser"]
-  C --> D["5. Repeat each bug<br/>to prove it"]
-  D --> E["6. Write the<br/>report"]
-  E -.-> F["7. Write automated<br/>tests (optional)"]
-```
-
-1. **Read the code.** The screens and the server behind them.
-2. **List every feature.** This list is the target. Anything not tested is named in the report.
-3. **Write the test plan.** One test case per thing to check: normal use, wrong input, edge cases.
-4. **Run each test.** In a real browser, like a user. Each case is marked pass or fail.
-5. **Prove each bug.** Make it happen again, then save a screenshot and the server calls.
-6. **Write the report.** One web page: the test plan with results, then every bug in detail.
-7. **Write automated tests (optional).** Playwright or Cypress tests for each bug and each high-risk case. It runs them with no retries and gives each failure a verdict with evidence.
-
-It looks for features that do not work. It is not a security scanner.
+[![Example bug report with severity, test results, and coverage](docs/images/bug-report-summary.png)](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html)
 
 ## Quickstart
 
-1. **Install.**
+This example uses Claude Code. Before starting, you need:
 
-   ```bash
-   git clone https://github.com/jpita/ai-qa-engineer.git
-   cd ai-qa-engineer
-   npm install
-   npx playwright install chromium
-   ```
+- Git, Node.js 20 or later, and npm.
+- Claude Code installed and signed in.
+- A running web app and access to its frontend and backend source code.
 
-2. **Give your agent a browser.**
+### 1. Install the repository helpers
 
-   ```bash
-   claude mcp add playwright -- npx -y @playwright/mcp@latest --headless --isolated
-   ```
+```bash
+git clone https://github.com/jpita/ai-qa-engineer.git
+cd ai-qa-engineer
+npm install
+npx playwright install chromium
+```
 
-3. **Add the skill to Claude Code.**
+### 2. Connect a browser to Claude Code
 
-   ```bash
-   mkdir -p ~/.claude/skills/ai-qa-engineer
-   ln -s "$PWD/SKILL.md" ~/.claude/skills/ai-qa-engineer/SKILL.md
-   ```
+The Playwright MCP server gives the agent tools to open pages, click, type, and
+inspect browser requests. User scope makes the browser tools available when you
+open Claude Code in the report folder.
 
-4. **Run it.** Point it at the website and its code. Each one can be local or a link.
+```bash
+claude mcp add --scope user playwright -- npx -y @playwright/mcp@latest --headless --isolated
+```
 
-   ```
-   /ai-qa-engineer --url http://localhost:3000 --source ./conduit
-   ```
+### 3. Install the skill
 
-   To also get automated tests, name the framework: `--tests playwright` or `--tests cypress`.
+From the repository root, link the skill into Claude Code's skills directory:
 
-   ```
-   /ai-qa-engineer --url http://localhost:3000 --source ./conduit --tests cypress
-   ```
+```bash
+mkdir -p ~/.claude/skills/ai-qa-engineer
+ln -s "$PWD/SKILL.md" ~/.claude/skills/ai-qa-engineer/SKILL.md
+```
 
-   If you ask for tests without naming a framework, it uses the one the app's repo already has, or Playwright.
+### 4. Ask the agent to test your app
 
-   With only a code link, it downloads the code, starts the site, then tests it:
+Create a folder for the reports and open Claude Code there:
 
-   ```
-   /ai-qa-engineer --source https://github.com/juice-shop/juice-shop
-   ```
+```bash
+mkdir -p qa-results
+cd qa-results
+claude
+```
 
-5. **Open the report.** It is the `bug-report-<date>-<model>.html` file in the folder you ran it from.
+In Claude Code, enter the following request. Replace the URL and source path with
+your running app's address and the absolute path to its code:
 
-Using another agent? Paste [SKILL.md](SKILL.md) into its prompt. Setup for each agent is in the [full guide](docs/QUICKSTART.md).
+```text
+/ai-qa-engineer --url http://localhost:3000 --source /absolute/path/to/your-app
+```
 
-> [!WARNING]
-> The agent runs with your permissions on your computer.
->
-> Test a throwaway app, or [sandbox the agent](docs/SANDBOX-MACOS.md).
+The source can also be a Git repository URL. If you provide only a source folder
+or repository URL, the skill directs the agent to start the app before testing.
+Setup still depends on the app's dependencies and configuration.
 
-## Evaluate agents
+To request regression tests, add your preferred framework:
 
-Two synthetic tasks check the agent itself:
+```text
+/ai-qa-engineer --url http://localhost:3000 --source /absolute/path/to/your-app --tests cypress
+```
 
-- **Profile persistence:** prove that a saved bio survives a reload.
-- **Silent calculation:** check a match score independently when list and text inputs should give the same answer—even if every request succeeds.
+Use `--tests playwright` for Playwright. If you request tests without choosing a
+framework, the skill uses the app's existing framework when there is one, or
+Playwright when there is no unambiguous choice.
 
-Each task has broken and fixed variants with fresh state. Passing requires the correct conclusion, recorded browser activity, matching findings and a screenshot. The default demo runs all four trials; add `-- --task calculation` to run only the new task.
+### 5. Open the report
 
-After installing the repo dependencies and Playwright Chromium, try the scripted reference:
+Look in the folder where you started Claude Code for
+`bug-report-<date>-<model>.html`. Open it in a browser. The file contains the test
+results, bug details, and embedded screenshots, so it can be shared as one file.
+
+Agents can run commands with your configured permissions. Use a disposable test
+app and read the [macOS sandbox guide](docs/SANDBOX-MACOS.md) when you need to
+restrict access to local files.
+
+## Supported agents
+
+The repository includes launchers for Claude Code, Codex, Grok, Kimi,
+DeepSeek through Reasonix, Antigravity, and GitHub Copilot. Each agent needs a
+supported model, authentication, and working browser tools.
+
+For another agent, supply [SKILL.md](SKILL.md) as its instructions and follow the
+[agent setup guide](docs/QUICKSTART.md). Launcher model defaults and environment
+overrides are configured in [scripts/models.env](scripts/models.env).
+
+Before using a launcher, check that the agent can reach the target app through its
+browser tools. The [browser preflight](docs/QUICKSTART.md#comparing-full-site-runs)
+checks this against a running app. Launcher support alone does not establish that
+an agent completed a QA assessment.
+
+## How testing works
+
+The agent reads the frontend and backend to map features and routes, then writes
+a test plan covering normal use, invalid input, boundaries, persistence, and
+regressions. It exercises user flows in a real browser and checks server behavior
+with direct requests where appropriate.
+
+For a suspected bug, it repeats the behavior and records the evidence. The report
+states what happened, what should have happened, and how to reproduce it. Routes
+that could not be tested remain visible as coverage gaps.
+
+When regression tests are requested, the skill guides the agent to create and run
+them. Failed tests are classified as an app bug, a test bug, a setup problem, or
+an inconclusive result.
+
+## Output files
+
+| File | Contents |
+| --- | --- |
+| `test-plan.json` | Test cases, expected results, risk levels, and execution results |
+| `findings.json` | Reproduced bugs and supporting evidence |
+| `coverage.json` | Backend routes, test status, and reasons for gaps |
+| `bug-report-<date>-<model>.html` | Standalone report with embedded screenshots |
+| `specs/` or `cypress/e2e/` | Regression tests, when requested |
+| `triage.json` | Explanations and evidence for failed regression tests |
+
+Focused agent evaluations use a smaller [output contract](docs/EVALS.md#trial-artifacts).
+
+## Examples
+
+- [Conduit report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html):
+  inspect the report layout, reproduction steps, and screenshots. The underlying
+  [findings and coverage files](examples/conduit) are included in the repository.
+- [OWASP Juice Shop](examples/juice-shop): inspect a test plan, generated Playwright
+  tests, and explanations of failed tests. This example covers part of the app.
+
+## Evaluate an agent
+
+The evaluation tools check whether an agent can identify a defect and correctly
+recognize working behavior. Two small apps provide broken and fixed versions of:
+
+- **Profile persistence:** saving a bio and checking that it survives a reload.
+- **Calculation correctness:** checking that text and list inputs produce the
+  expected match score, including cases where the server returns a successful response.
+
+A passing assessment requires the correct conclusion, recorded browser activity,
+matching findings, and a screenshot.
+
+To inspect the workflow without calling an AI model, run the scripted browser
+reference from the repository root:
 
 ```bash
 npm run eval:demo
 ```
 
-Open the printed `report.html` path to inspect scores, timings and evidence. This calls no model; a passing demo verifies the evaluation machinery, not AI performance.
+Open the `report.html` path printed by the command to inspect the conclusions and
+evidence. This checks the evaluation tools; it does not measure an AI model.
 
-| Workflow | Command | Guide |
-| --- | --- | --- |
-| Evaluate a local agent CLI | `npm run eval:run -- --agent NAME --model ID --command 'COMMAND'` | [Local eval setup and scoring](docs/EVALS.md) |
-| Check the Docker tasks without model calls | `npm run harbor:oracle` and `npm run harbor:nop` | [Harbor setup](docs/HARBOR.md#setup) |
-| Compare Claude Code and Codex in Docker | `npm run harbor:compare` | [Authentication and comparison options](docs/HARBOR.md#compare-agents) |
-| Browse Harbor jobs, evidence and timings | `npm run harbor:view` | [Reading Harbor results](docs/HARBOR.md#results-and-timing) |
-
-Harbor requires its own installation and a working Docker environment. Its comparison defaults to three attempts per task and state for each agent: 24 trials. Local eval output goes to `runs/evals/`; Harbor tasks and jobs go to `runs/harbor/`. Both are ignored by Git.
-
-These measure two focused QA behaviors. It does not yet score full-site coverage, report quality or generated regression tests, and is not a broad ranking of QA agents.
-
-## What is in this repo
-
-| Folder | What it is |
+| Goal | Guide |
 | --- | --- |
-| [`SKILL.md`](SKILL.md) | The instructions the AI agent follows. The core of the project. |
-| [`scripts/`](scripts) | Helper code: builds the report, scans the website, checks coverage. |
-| [`scripts/evals/`](scripts/evals) | Broken/fixed fixture, browser reference, grader, local runner and Harbor task generator. |
-| [`tests/`](tests) | Automated checks for coverage logic, eval grading, fixture behavior and timing summaries. |
-| [`examples/`](examples) | Two real runs, with all their output. |
-| [`docs/`](docs) | Setup, evaluation, Harbor and sandbox guides. |
+| Evaluate an installed agent CLI | [Local evaluation setup and scoring](docs/EVALS.md) |
+| Compare Claude Code and Codex in separate Docker containers | [Harbor setup and authentication](docs/HARBOR.md) |
+| Inspect scores, evidence, and timings | [Local reports](docs/EVALS.md#timings-in-the-report) or [Harbor's results viewer](docs/HARBOR.md#results-and-timing) |
 
-## Files a full QA run writes
+These tasks assess persistence and calculation behavior. They do not score
+full-app coverage, report quality, or generated regression tests.
 
-These are the full-site skill outputs. Focused evals use the smaller [eval artifact contract](docs/EVALS.md#trial-artifacts).
+## Documentation
 
-| File | What is in it |
-| --- | --- |
-| `test-plan.json` | every test case: steps, expected result, risk, result |
-| `findings.json` | every bug: steps, expected and actual result, server calls, screenshot |
-| `coverage.json` | every server route: tested or not, and why |
-| `bug-report-<date>-<model>.html` | the report, one file with the screenshots inside |
-| `specs/` or `cypress/e2e/` | the Playwright or Cypress tests (only when you ask for automated tests) |
-| `triage.json` | a verdict and evidence for each failed test (same) |
-
-## Examples
-
-| Run | What it shows |
-| --- | --- |
-| [Conduit](examples/conduit) | a full run: 11 bugs, 21 routes, the [report](https://jpita.github.io/ai-qa-engineer/examples/conduit/bug-report-2026-09-02T19-22-17-claude-sonnet-5.html) with screenshots |
-| [OWASP Juice Shop](examples/juice-shop) | an early run on 10 of 102 routes: a 39-case test plan, generated Playwright tests, and a review of each failed test |
-
-<details>
-<summary><b>Design decisions</b> (for engineers)</summary>
-
-<br>
-
-**Code does the mechanical work. The agent does the judgment.**
-
-| Code | The agent |
-| --- | --- |
-| scan the website, record its buttons and requests | read the code, find every server route |
-| match the scan to the routes | write the test plan |
-| run the tests, read the results | write tests at the right level |
-| build the report | decide which failures are real bugs |
-| check every output file against a schema | |
-
-**Three test levels.**
-
-| Level | What it does | Best for |
-| --- | --- | --- |
-| `api` | calls the server directly | bad data, missing fields, wrong types |
-| `ui` | drives a real browser on the real server | what a user actually does |
-| `ui_mocked` | drives the browser, fakes the server reply | server errors, empty lists, broken replies |
-
-- A feature with a screen is tested both in the browser and directly on the server. A passing server call does not prove the screen sends that call.
-- Each failed test gets one of four verdicts: app bug, test bug, setup problem, or not enough evidence.
-- No automatic retries. A test that passes only on retry is itself a finding.
-- No made-up timeouts. A wait time is raised only with a measured number.
-- No guesses. If the code does not show a rule, the report says so.
-
-</details>
-
-## Docs
-
-- [Evaluation guide](docs/EVALS.md): local runs, output contract, grading, scores and timing
-- [Harbor guide](docs/HARBOR.md): Docker setup, authentication, agent comparisons and results viewer
-- [Full setup guide](docs/QUICKSTART.md): every agent, test apps, comparing agents
-- [Sandbox guide](docs/SANDBOX-MACOS.md): keep an agent away from your passwords and keys (macOS)
-- [SKILL.md](SKILL.md): the full instructions the agent follows
+- [Full setup guide](docs/QUICKSTART.md): agent setup, target apps, and launchers.
+- [QA skill](SKILL.md): testing instructions and report requirements.
+- [Evaluation guide](docs/EVALS.md): local agent assessments and evidence checks.
+- [Harbor guide](docs/HARBOR.md): container setup, authentication, and comparisons.
+- [Sandbox guide](docs/SANDBOX-MACOS.md): restricting local file access on macOS.
 
 ## License
 
-MIT
+[MIT](LICENSE).
